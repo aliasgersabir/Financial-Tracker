@@ -10,11 +10,11 @@ interface BadgeProps {
 
 export function Badge({ children, variant = "default", className }: BadgeProps) {
   const variants = {
-    default: "bg-indigo-100 text-indigo-700",
-    success: "bg-emerald-100 text-emerald-700",
-    destructive: "bg-red-100 text-red-700",
-    warning: "bg-amber-100 text-amber-700",
-    outline: "bg-gray-100 text-gray-700",
+    default: "bg-[#EFF6FF] text-[#2563EB]",
+    success: "bg-[#F0FDF4] text-[#16A34A]",
+    destructive: "bg-[#FEF2F2] text-[#DC2626]",
+    warning: "bg-[#FFFBEB] text-[#F59E0B]",
+    outline: "bg-[#F3F4F6] text-[#6B7280]",
   }
 
   return (

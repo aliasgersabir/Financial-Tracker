@@ -31,71 +31,78 @@ export function Sidebar() {
     <>
       <button
         onClick={() => setMobileOpen(true)}
-        className="fixed top-4 left-4 z-50 rounded-xl bg-white p-2 shadow-lg lg:hidden cursor-pointer"
+        className="fixed top-4 left-4 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm border border-[#E5E7EB] lg:hidden cursor-pointer"
       >
-        <Menu className="h-5 w-5" />
+        <Menu className="h-4 w-4 text-[#111111]" />
       </button>
 
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-full w-64 bg-white border-r-2 border-gray-100 p-4 transition-transform duration-300 lg:translate-x-0",
+          "fixed left-0 top-0 z-40 h-full w-[260px] bg-white border-r border-[#F3F4F6] transition-transform duration-200 ease-out lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex items-center justify-between mb-8">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              FinOS
-            </span>
-          </Link>
-          <button
-            onClick={() => setMobileOpen(false)}
-            className="rounded-lg p-1 hover:bg-gray-100 lg:hidden cursor-pointer"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+        <div className="flex h-full flex-col">
+          <div className="flex items-center justify-between px-6 py-5">
+            <Link href="/dashboard" className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-[#111111]">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
+              <span className="text-[17px] font-semibold text-[#111111] tracking-tight">
+                FinOS
+              </span>
+            </Link>
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[#6B7280] hover:bg-[#F3F4F6] lg:hidden cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
 
-        <nav className="space-y-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                  isActive
-                    ? "bg-indigo-50 text-indigo-700"
-                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-                )}
-              >
-                <item.icon className={cn("h-5 w-5", isActive && "text-indigo-600")} />
-                {item.label}
-              </Link>
-            )
-          })}
-        </nav>
+          <nav className="flex-1 px-3 py-2">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium transition-all duration-150 mb-0.5",
+                    isActive
+                      ? "bg-[#EFF6FF] text-[#2563EB]"
+                      : "text-[#6B7280] hover:bg-[#F9FAFB] hover:text-[#111111]"
+                  )}
+                >
+                  <item.icon
+                    className={cn(
+                      "h-[18px] w-[18px]",
+                      isActive ? "text-[#2563EB]" : "text-[#9CA3AF]"
+                    )}
+                  />
+                  {item.label}
+                </Link>
+              )
+            })}
+          </nav>
 
-        <div className="absolute bottom-4 left-4 right-4">
-          <button
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-200 cursor-pointer"
-          >
-            <LogOut className="h-5 w-5" />
-            Sign Out
-          </button>
+          <div className="px-3 pb-4">
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium text-[#6B7280] hover:bg-[#FEF2F2] hover:text-[#DC2626] transition-all duration-150 cursor-pointer"
+            >
+              <LogOut className="h-[18px] w-[18px]" />
+              Sign Out
+            </button>
+          </div>
         </div>
       </aside>
     </>

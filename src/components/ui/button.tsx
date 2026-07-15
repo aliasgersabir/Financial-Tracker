@@ -11,22 +11,22 @@ const Button = React.forwardRef<
   }
 >(({ className, variant = "default", size = "default", ...props }, ref) => {
   const variants = {
-    default: "bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200",
-    outline: "border-2 border-gray-200 bg-white hover:bg-gray-50 text-gray-700",
-    ghost: "hover:bg-gray-100 text-gray-600",
-    destructive: "bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-200",
-    success: "bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-200",
+    default: "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-sm",
+    outline: "bg-white border border-[#E5E7EB] text-[#111111] hover:bg-[#F9FAFB] shadow-sm",
+    ghost: "text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111111]",
+    destructive: "bg-[#DC2626] text-white hover:bg-[#B91C1C] shadow-sm",
+    success: "bg-[#16A34A] text-white hover:bg-[#15803D] shadow-sm",
   }
   const sizes = {
-    default: "h-10 px-4 py-2 rounded-xl",
-    sm: "h-8 px-3 rounded-lg text-sm",
-    lg: "h-12 px-6 rounded-xl text-lg",
-    icon: "h-10 w-10 rounded-xl",
+    default: "h-10 px-5 py-2 rounded-full text-sm font-medium",
+    sm: "h-8 px-3.5 rounded-full text-sm font-medium",
+    lg: "h-12 px-8 rounded-full text-base font-medium",
+    icon: "h-10 w-10 rounded-full",
   }
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
+        "inline-flex items-center justify-center transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer active:scale-[0.98]",
         variants[variant],
         sizes[size],
         className
