@@ -34,96 +34,79 @@ const barHeights = [65, 45, 80, 35, 55, 70, 40, 90, 60, 75, 50, 85]
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-[#F8F8F6]">
+    <div style={{ minHeight: "100vh", width: "100%", background: "#F8F8F6", overflowX: "hidden" }}>
       {/* Nav */}
-      <nav className="mx-auto flex w-full max-w-[1120px] items-center justify-between px-6 py-5">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#111111]">
-            <Sparkles className="h-4 w-4 text-white" />
+      <nav style={{ maxWidth: "1120px", margin: "0 auto", padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ width: "36px", height: "36px", borderRadius: "12px", background: "#111111", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Sparkles style={{ width: "16px", height: "16px", color: "white" }} />
           </div>
-          <span className="text-[17px] font-semibold text-[#111111] tracking-tight">
-            FinOS
-          </span>
+          <span style={{ fontSize: "17px", fontWeight: 600, color: "#111111" }}>FinOS</span>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Link
-            href="/login"
-            className="px-4 py-2 text-[14px] font-medium text-[#6B7280] hover:text-[#111111] transition-colors rounded-full hover:bg-white"
-          >
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Link href="/login" style={{ padding: "8px 16px", fontSize: "14px", fontWeight: 500, color: "#6B7280", borderRadius: "9999px", textDecoration: "none" }}>
             Log in
           </Link>
-          <Link
-            href="/signup"
-            className="px-5 py-2 text-[14px] font-medium text-white bg-[#2563EB] rounded-full hover:bg-[#1D4ED8] transition-all duration-150 shadow-sm"
-          >
+          <Link href="/signup" style={{ padding: "8px 20px", fontSize: "14px", fontWeight: 500, color: "white", background: "#2563EB", borderRadius: "9999px", textDecoration: "none" }}>
             Get Started
           </Link>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="mx-auto w-full max-w-[1120px] px-6 pt-20 pb-20 text-center">
-        <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#F3F4F6] bg-white px-4 py-1.5 text-[13px] font-medium text-[#6B7280] shadow-sm">
-          <Zap className="h-3.5 w-3.5 text-[#2563EB]" />
+      <section style={{ maxWidth: "1120px", margin: "0 auto", padding: "80px 24px", textAlign: "center" }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", borderRadius: "9999px", border: "1px solid #F3F4F6", background: "white", padding: "6px 16px", fontSize: "13px", fontWeight: 500, color: "#6B7280", marginBottom: "32px", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
+          <Zap style={{ width: "14px", height: "14px", color: "#2563EB" }} />
           Your money, beautifully organized
         </div>
 
-        <h1 className="mb-6 text-[clamp(2.5rem,8vw,4.5rem)] font-bold leading-[1.05] tracking-[-0.03em] text-[#111111]">
+        <h1 style={{ fontSize: "clamp(2.5rem, 8vw, 4.5rem)", fontWeight: 700, lineHeight: 1.05, letterSpacing: "-0.03em", color: "#111111", marginBottom: "24px" }}>
           Personal Finance
           <br />
-          <span className="text-[#9CA3AF]">Operating System</span>
+          <span style={{ color: "#9CA3AF" }}>Operating System</span>
         </h1>
 
-        <p className="mx-auto mb-10 max-w-xl text-lg leading-relaxed text-[#6B7280]">
+        <p style={{ maxWidth: "640px", margin: "0 auto 40px", fontSize: "18px", lineHeight: 1.6, color: "#6B7280" }}>
           Stop juggling spreadsheets. FinOS gives you a single, beautiful place
           to track accounts, categorize spending, and understand your money flow.
         </p>
 
-        <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link
-            href="/signup"
-            className="inline-flex items-center gap-2 rounded-full bg-[#2563EB] px-7 py-3 text-[15px] font-medium text-white shadow-sm transition-all duration-150 hover:bg-[#1D4ED8]"
-          >
+        <div style={{ display: "flex", justifyContent: "center", gap: "12px", flexWrap: "wrap" }}>
+          <Link href="/signup" style={{ display: "inline-flex", alignItems: "center", gap: "8px", borderRadius: "9999px", background: "#2563EB", padding: "12px 28px", fontSize: "15px", fontWeight: 500, color: "white", textDecoration: "none", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
             Start Tracking Free
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight style={{ width: "16px", height: "16px" }} />
           </Link>
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-2 rounded-full border border-[#E5E7EB] bg-white px-7 py-3 text-[15px] font-medium text-[#111111] shadow-sm transition-all duration-150 hover:bg-[#F9FAFB]"
-          >
+          <Link href="/login" style={{ display: "inline-flex", alignItems: "center", gap: "8px", borderRadius: "9999px", border: "1px solid #E5E7EB", background: "white", padding: "12px 28px", fontSize: "15px", fontWeight: 500, color: "#111111", textDecoration: "none", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
             I have an account
           </Link>
         </div>
       </section>
 
-      {/* Mock Dashboard */}
-      <section className="mx-auto w-full max-w-[900px] px-6 pb-24">
-        <div className="w-full rounded-[20px] border border-[#E5E7EB] bg-white p-3 shadow-[0_4px_24px_rgba(0,0,0,0.06)] sm:p-4">
-          <div className="w-full rounded-[14px] bg-[#F3F4F6] p-5 sm:p-7">
-            <div className="mb-4 grid w-full grid-cols-3 gap-2 sm:gap-3">
-              <div className="min-w-0 rounded-[12px] bg-white p-3 shadow-sm sm:p-4">
-                <p className="text-[11px] font-medium text-[#9CA3AF]">Total Balance</p>
-                <p className="mt-0.5 truncate text-[18px] font-semibold text-[#111111] sm:text-[22px]">$24,563</p>
-                <p className="text-[11px] font-medium text-[#16A34A]">+12.5% this month</p>
+      {/* Mock Dashboard — pure inline styles, no Tailwind */}
+      <section style={{ width: "100%", maxWidth: "860px", margin: "0 auto", padding: "0 24px 96px" }}>
+        <div style={{ width: "100%", borderRadius: "20px", border: "1px solid #E5E7EB", background: "white", padding: "12px", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
+          <div style={{ width: "100%", borderRadius: "14px", background: "#F3F4F6", padding: "20px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px", marginBottom: "16px" }}>
+              <div style={{ borderRadius: "12px", background: "white", padding: "14px", boxShadow: "0 1px 2px rgba(0,0,0,0.04)", overflow: "hidden" }}>
+                <p style={{ fontSize: "11px", fontWeight: 500, color: "#9CA3AF", margin: 0 }}>Total Balance</p>
+                <p style={{ fontSize: "20px", fontWeight: 600, color: "#111111", margin: "2px 0 0", whiteSpace: "nowrap" }}>$24,563</p>
+                <p style={{ fontSize: "11px", fontWeight: 500, color: "#16A34A", margin: "2px 0 0" }}>+12.5% this month</p>
               </div>
-              <div className="min-w-0 rounded-[12px] bg-white p-3 shadow-sm sm:p-4">
-                <p className="text-[11px] font-medium text-[#9CA3AF]">Income</p>
-                <p className="mt-0.5 truncate text-[18px] font-semibold text-[#16A34A] sm:text-[22px]">$8,450</p>
-                <p className="text-[11px] font-medium text-[#9CA3AF]">This month</p>
+              <div style={{ borderRadius: "12px", background: "white", padding: "14px", boxShadow: "0 1px 2px rgba(0,0,0,0.04)", overflow: "hidden" }}>
+                <p style={{ fontSize: "11px", fontWeight: 500, color: "#9CA3AF", margin: 0 }}>Income</p>
+                <p style={{ fontSize: "20px", fontWeight: 600, color: "#16A34A", margin: "2px 0 0", whiteSpace: "nowrap" }}>$8,450</p>
+                <p style={{ fontSize: "11px", fontWeight: 500, color: "#9CA3AF", margin: "2px 0 0" }}>This month</p>
               </div>
-              <div className="min-w-0 rounded-[12px] bg-white p-3 shadow-sm sm:p-4">
-                <p className="text-[11px] font-medium text-[#9CA3AF]">Expenses</p>
-                <p className="mt-0.5 truncate text-[18px] font-semibold text-[#DC2626] sm:text-[22px]">$3,241</p>
-                <p className="text-[11px] font-medium text-[#9CA3AF]">This month</p>
+              <div style={{ borderRadius: "12px", background: "white", padding: "14px", boxShadow: "0 1px 2px rgba(0,0,0,0.04)", overflow: "hidden" }}>
+                <p style={{ fontSize: "11px", fontWeight: 500, color: "#9CA3AF", margin: 0 }}>Expenses</p>
+                <p style={{ fontSize: "20px", fontWeight: 600, color: "#DC2626", margin: "2px 0 0", whiteSpace: "nowrap" }}>$3,241</p>
+                <p style={{ fontSize: "11px", fontWeight: 500, color: "#9CA3AF", margin: "2px 0 0" }}>This month</p>
               </div>
             </div>
-            <div className="flex w-full items-end gap-[5px]" style={{ height: "80px" }}>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: "5px", height: "80px" }}>
               {barHeights.map((h, i) => (
-                <div key={i} className="min-h-0 min-w-0 flex-1">
-                  <div
-                    className="w-full rounded-[3px] bg-[#2563EB] sm:rounded-[4px]"
-                    style={{ height: `${h}%`, opacity: 0.65 }}
-                  />
+                <div key={i} style={{ flex: 1, minWidth: 0, height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+                  <div style={{ width: "100%", height: `${h}%`, borderRadius: "3px", background: "#2563EB", opacity: 0.65 }} />
                 </div>
               ))}
             </div>
@@ -132,17 +115,17 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="w-full border-t border-[#F3F4F6] bg-white py-20">
-        <div className="mx-auto max-w-[1120px] px-6">
-          <div className="mb-14 text-center">
-            <h2 className="mb-4 text-3xl font-bold tracking-tight text-[#111111]">
+      <section style={{ width: "100%", borderTop: "1px solid #F3F4F6", background: "white", padding: "80px 0" }}>
+        <div style={{ maxWidth: "1120px", margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ textAlign: "center", marginBottom: "56px" }}>
+            <h2 style={{ fontSize: "30px", fontWeight: 700, letterSpacing: "-0.02em", color: "#111111", marginBottom: "16px" }}>
               Everything you need, nothing you don&apos;t
             </h2>
-            <p className="text-lg text-[#6B7280]">
+            <p style={{ fontSize: "18px", color: "#6B7280" }}>
               Clean, fast, and simple. Just like your finances should be.
             </p>
           </div>
-          <div className="grid gap-5 md:grid-cols-3">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px" }}>
             {features.map((feature, i) => (
               <motion.div
                 key={feature.title}
@@ -150,13 +133,13 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08, duration: 0.3 }}
-                className="rounded-[20px] bg-[#F8F8F6] p-7 transition-all duration-200 hover:bg-white hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
+                style={{ borderRadius: "20px", background: "#F8F8F6", padding: "28px", transition: "all 0.2s" }}
               >
-                <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-[12px] bg-white shadow-sm">
-                  <feature.icon className="h-5 w-5 text-[#2563EB]" />
+                <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "white", boxShadow: "0 1px 2px rgba(0,0,0,0.04)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "20px" }}>
+                  <feature.icon style={{ width: "20px", height: "20px", color: "#2563EB" }} />
                 </div>
-                <h3 className="mb-2 text-[17px] font-semibold text-[#111111]">{feature.title}</h3>
-                <p className="text-[15px] leading-relaxed text-[#6B7280]">{feature.desc}</p>
+                <h3 style={{ fontSize: "17px", fontWeight: 600, color: "#111111", marginBottom: "8px" }}>{feature.title}</h3>
+                <p style={{ fontSize: "15px", lineHeight: 1.6, color: "#6B7280", margin: 0 }}>{feature.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -164,12 +147,12 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#F3F4F6] bg-white py-8">
-        <div className="mx-auto flex max-w-[1120px] flex-col items-center justify-between gap-4 px-6 sm:flex-row">
-          <div className="flex items-center gap-2 text-[13px] text-[#9CA3AF]">
-            Built with <Heart className="h-3.5 w-3.5 fill-[#DC2626] text-[#DC2626]" /> by FinOS
+      <footer style={{ borderTop: "1px solid #F3F4F6", background: "white", padding: "32px 0" }}>
+        <div style={{ maxWidth: "1120px", margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#9CA3AF" }}>
+            Built with <Heart style={{ width: "14px", height: "14px", fill: "#DC2626", color: "#DC2626" }} /> by FinOS
           </div>
-          <p className="text-[13px] text-[#D1D5DB]">
+          <p style={{ fontSize: "13px", color: "#D1D5DB", margin: 0 }}>
             Phase 1 — Your Personal Finance OS
           </p>
         </div>
