@@ -34,64 +34,54 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8F8F6] p-6">
-      <div className="w-full max-w-[400px]">
-        <div className="flex items-center gap-2.5 mb-10">
-          <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-[#111111]">
-            <Sparkles className="h-4 w-4 text-white" />
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F8F8F6", padding: "24px" }}>
+      <div style={{ width: "100%", maxWidth: "400px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "40px" }}>
+          <div style={{ width: "36px", height: "36px", borderRadius: "12px", background: "#111111", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Sparkles style={{ width: "16px", height: "16px", color: "white" }} />
           </div>
-          <span className="text-[17px] font-semibold text-[#111111] tracking-tight">
-            FinOS
-          </span>
+          <span style={{ fontSize: "17px", fontWeight: 600, color: "#111111" }}>FinOS</span>
         </div>
 
-        <h1 className="text-[32px] font-bold text-[#111111] tracking-tight mb-2">
-          Welcome back
-        </h1>
-        <p className="text-[15px] text-[#6B7280] mb-8">
-          Sign in to your account to continue
-        </p>
+        <h1 style={{ fontSize: "32px", fontWeight: 700, color: "#111111", marginBottom: "8px" }}>Welcome back</h1>
+        <p style={{ fontSize: "15px", color: "#6B7280", marginBottom: "32px" }}>Sign in to your account to continue</p>
 
         {error && (
-          <div className="mb-6 rounded-xl bg-[#FEF2F2] border border-[#FECACA] p-3.5 text-[13px] text-[#DC2626] font-medium">
+          <div style={{ marginBottom: "24px", borderRadius: "12px", background: "#FEF2F2", border: "1px solid #FECACA", padding: "14px", fontSize: "13px", color: "#DC2626", fontWeight: 500 }}>
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-[13px] font-medium text-[#111111] mb-1.5">
-              Email
-            </label>
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: "16px" }}>
+            <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-11 w-full rounded-xl border border-[#E5E7EB] bg-white px-3.5 text-[14px] text-[#111111] transition-all duration-150 placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+              style={{ height: "44px", width: "100%", borderRadius: "12px", border: "1px solid #E5E7EB", background: "white", padding: "0 14px", fontSize: "14px", color: "#111111", outline: "none", boxSizing: "border-box" }}
               placeholder="you@example.com"
               required
             />
           </div>
 
-          <div>
-            <label className="block text-[13px] font-medium text-[#111111] mb-1.5">
-              Password
-            </label>
-            <div className="relative">
+          <div style={{ marginBottom: "16px" }}>
+            <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Password</label>
+            <div style={{ position: "relative" }}>
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-11 w-full rounded-xl border border-[#E5E7EB] bg-white px-3.5 pr-11 text-[14px] text-[#111111] transition-all duration-150 placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+                style={{ height: "44px", width: "100%", borderRadius: "12px", border: "1px solid #E5E7EB", background: "white", padding: "0 44px 0 14px", fontSize: "14px", color: "#111111", outline: "none", boxSizing: "border-box" }}
                 placeholder="Enter your password"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[#9CA3AF] hover:text-[#6B7280] transition-colors cursor-pointer"
+                style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", padding: "4px", color: "#9CA3AF", background: "none", border: "none", cursor: "pointer" }}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? <EyeOff style={{ width: "16px", height: "16px" }} /> : <Eye style={{ width: "16px", height: "16px" }} />}
               </button>
             </div>
           </div>
@@ -99,26 +89,27 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-11 rounded-full bg-[#2563EB] text-white text-[14px] font-medium hover:bg-[#1D4ED8] transition-all duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98]"
+            style={{ width: "100%", height: "44px", borderRadius: "9999px", background: "#2563EB", color: "white", fontSize: "14px", fontWeight: 500, border: "none", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.5 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginTop: "8px" }}
           >
             {loading ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <div style={{ width: "16px", height: "16px", border: "2px solid white", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
             ) : (
               <>
                 Sign in
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight style={{ width: "16px", height: "16px" }} />
               </>
             )}
           </button>
         </form>
 
-        <p className="text-center text-[13px] text-[#6B7280] mt-8">
+        <p style={{ textAlign: "center", fontSize: "13px", color: "#6B7280", marginTop: "32px" }}>
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="font-medium text-[#2563EB] hover:text-[#1D4ED8] transition-colors">
+          <Link href="/signup" style={{ fontWeight: 500, color: "#2563EB", textDecoration: "none" }}>
             Sign up
           </Link>
         </p>
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 }
