@@ -32,7 +32,7 @@ const features = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#F8F8F6]">
+    <div className="min-h-screen bg-[#F8F8F6] overflow-x-hidden">
       <nav className="flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-[#111111]">
@@ -58,7 +58,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      <section className="max-w-6xl mx-auto px-6 pt-24 pb-32 text-center">
+      <section className="max-w-6xl mx-auto px-6 pt-20 pb-24 text-center">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -96,37 +96,38 @@ export default function LandingPage() {
             </Link>
           </div>
         </motion.div>
+      </section>
 
+      <section className="max-w-5xl mx-auto px-6 pb-24">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-          className="mt-20"
         >
-          <div className="rounded-[24px] bg-white p-2 shadow-[0_2px_20px_rgba(0,0,0,0.06)] border border-[#F3F4F6]">
-            <div className="rounded-[20px] bg-[#F8F8F6] p-8">
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="rounded-[16px] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+          <div className="rounded-[24px] bg-white p-2 shadow-[0_2px_20px_rgba(0,0,0,0.06)] border border-[#F3F4F6] overflow-hidden">
+            <div className="rounded-[20px] bg-[#F8F8F6] p-6 md:p-8 overflow-hidden">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6">
+                <div className="rounded-[16px] bg-white p-4 md:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
                   <p className="text-[12px] text-[#9CA3AF] font-medium mb-1">Total Balance</p>
-                  <p className="text-[22px] font-semibold text-[#111111]">$24,563</p>
+                  <p className="text-[20px] md:text-[22px] font-semibold text-[#111111]">$24,563</p>
                   <p className="text-[12px] text-[#16A34A] font-medium mt-1">+12.5% this month</p>
                 </div>
-                <div className="rounded-[16px] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                <div className="rounded-[16px] bg-white p-4 md:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
                   <p className="text-[12px] text-[#9CA3AF] font-medium mb-1">Income</p>
-                  <p className="text-[22px] font-semibold text-[#16A34A]">$8,450</p>
+                  <p className="text-[20px] md:text-[22px] font-semibold text-[#16A34A]">$8,450</p>
                   <p className="text-[12px] text-[#9CA3AF] font-medium mt-1">This month</p>
                 </div>
-                <div className="rounded-[16px] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                <div className="rounded-[16px] bg-white p-4 md:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
                   <p className="text-[12px] text-[#9CA3AF] font-medium mb-1">Expenses</p>
-                  <p className="text-[22px] font-semibold text-[#DC2626]">$3,241</p>
+                  <p className="text-[20px] md:text-[22px] font-semibold text-[#DC2626]">$3,241</p>
                   <p className="text-[12px] text-[#9CA3AF] font-medium mt-1">This month</p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5 md:gap-2 h-[80px] md:h-[100px]">
                 {[65, 45, 80, 35, 55, 70, 40, 90, 60, 75, 50, 85].map((h, i) => (
                   <div key={i} className="flex-1 flex items-end">
                     <div
-                      className="w-full rounded-[6px] bg-[#2563EB] opacity-80 hover:opacity-100 transition-opacity"
+                      className="w-full rounded-[4px] bg-[#2563EB] opacity-70 hover:opacity-100 transition-opacity"
                       style={{ height: `${h}%` }}
                     />
                   </div>
@@ -137,17 +138,17 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
-      <section className="bg-white border-t border-[#F3F4F6] py-24">
+      <section className="bg-white border-t border-[#F3F4F6] py-20 md:py-24">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#111111] tracking-tight mb-4">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-3xl md:text-[40px] font-bold text-[#111111] tracking-tight mb-4">
               Everything you need, nothing you don&apos;t
             </h2>
             <p className="text-[#6B7280] text-lg">
               Clean, fast, and simple. Just like your finances should be.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-5 md:gap-6">
             {features.map((feature, i) => (
               <motion.div
                 key={feature.title}
@@ -155,7 +156,7 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08, duration: 0.3 }}
-                className="rounded-[20px] bg-[#F8F8F6] p-8 hover:bg-white hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] transition-all duration-200"
+                className="rounded-[20px] bg-[#F8F8F6] p-7 md:p-8 hover:bg-white hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] transition-all duration-200"
               >
                 <div className="flex h-11 w-11 items-center justify-center rounded-[12px] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] mb-5">
                   <feature.icon className="h-5 w-5 text-[#2563EB]" />
