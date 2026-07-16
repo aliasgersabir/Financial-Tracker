@@ -32,8 +32,8 @@ const features = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#F8F8F6] overflow-x-hidden">
-      <nav className="flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
+    <div className="min-h-screen bg-[#F8F8F6]">
+      <nav className="mx-auto flex max-w-[1120px] items-center justify-between px-6 py-5">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-[#111111]">
             <Sparkles className="h-4 w-4 text-white" />
@@ -58,39 +58,39 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      <section className="max-w-6xl mx-auto px-6 pt-20 pb-24 text-center">
+      <section className="mx-auto max-w-[1120px] px-6 pt-20 pb-24 text-center">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
         >
-          <div className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-[13px] font-medium text-[#6B7280] shadow-sm border border-[#F3F4F6] mb-8">
+          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#F3F4F6] bg-white px-4 py-1.5 text-[13px] font-medium text-[#6B7280] shadow-sm">
             <Zap className="h-3.5 w-3.5 text-[#2563EB]" />
             Your money, beautifully organized
           </div>
 
-          <h1 className="text-5xl md:text-[72px] font-bold tracking-[-0.03em] leading-[1.05] mb-6 text-[#111111]">
+          <h1 className="mb-6 text-5xl font-bold leading-[1.05] tracking-[-0.03em] text-[#111111] md:text-[72px]">
             Personal Finance
             <br />
             <span className="text-[#9CA3AF]">Operating System</span>
           </h1>
 
-          <p className="text-lg md:text-xl text-[#6B7280] max-w-xl mx-auto mb-10 leading-relaxed">
+          <p className="mx-auto mb-10 max-w-xl text-lg leading-relaxed text-[#6B7280] md:text-xl">
             Stop juggling spreadsheets. FinOS gives you a single, beautiful place
             to track accounts, categorize spending, and understand your money flow.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               href="/signup"
-              className="group inline-flex items-center gap-2 px-7 py-3 text-[15px] font-medium text-white bg-[#2563EB] rounded-full hover:bg-[#1D4ED8] transition-all duration-150 shadow-sm hover:shadow-md active:scale-[0.98]"
+              className="group inline-flex items-center gap-2 rounded-full bg-[#2563EB] px-7 py-3 text-[15px] font-medium text-white shadow-sm transition-all duration-150 hover:bg-[#1D4ED8] hover:shadow-md active:scale-[0.98]"
             >
               Start Tracking Free
               <ArrowRight className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-0.5" />
             </Link>
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 px-7 py-3 text-[15px] font-medium text-[#111111] bg-white border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-all duration-150 shadow-sm"
+              className="inline-flex items-center gap-2 rounded-full border border-[#E5E7EB] bg-white px-7 py-3 text-[15px] font-medium text-[#111111] shadow-sm transition-all duration-150 hover:bg-[#F9FAFB]"
             >
               I have an account
             </Link>
@@ -98,57 +98,51 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-6 pb-24">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-        >
-          <div className="rounded-[24px] bg-white p-2 shadow-[0_2px_20px_rgba(0,0,0,0.06)] border border-[#F3F4F6] overflow-hidden">
-            <div className="rounded-[20px] bg-[#F8F8F6] p-6 md:p-8 overflow-hidden">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6">
-                <div className="rounded-[16px] bg-white p-4 md:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-                  <p className="text-[12px] text-[#9CA3AF] font-medium mb-1">Total Balance</p>
-                  <p className="text-[20px] md:text-[22px] font-semibold text-[#111111]">$24,563</p>
-                  <p className="text-[12px] text-[#16A34A] font-medium mt-1">+12.5% this month</p>
-                </div>
-                <div className="rounded-[16px] bg-white p-4 md:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-                  <p className="text-[12px] text-[#9CA3AF] font-medium mb-1">Income</p>
-                  <p className="text-[20px] md:text-[22px] font-semibold text-[#16A34A]">$8,450</p>
-                  <p className="text-[12px] text-[#9CA3AF] font-medium mt-1">This month</p>
-                </div>
-                <div className="rounded-[16px] bg-white p-4 md:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-                  <p className="text-[12px] text-[#9CA3AF] font-medium mb-1">Expenses</p>
-                  <p className="text-[20px] md:text-[22px] font-semibold text-[#DC2626]">$3,241</p>
-                  <p className="text-[12px] text-[#9CA3AF] font-medium mt-1">This month</p>
-                </div>
+      <section className="mx-auto max-w-[960px] px-6 pb-24">
+        <div className="overflow-hidden rounded-[24px] border border-[#F3F4F6] bg-white p-[6px] shadow-[0_2px_24px_rgba(0,0,0,0.06)]">
+          <div className="rounded-[20px] bg-[#F3F4F6] p-6 sm:p-8">
+            <div className="mb-5 grid grid-cols-3 gap-3">
+              <div className="rounded-[14px] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                <p className="mb-1 text-[11px] font-medium text-[#9CA3AF]">Total Balance</p>
+                <p className="text-[18px] font-semibold tracking-tight text-[#111111] sm:text-[22px]">$24,563</p>
+                <p className="mt-1 text-[11px] font-medium text-[#16A34A]">+12.5% this month</p>
               </div>
-              <div className="flex gap-1.5 md:gap-2 h-[80px] md:h-[100px]">
-                {[65, 45, 80, 35, 55, 70, 40, 90, 60, 75, 50, 85].map((h, i) => (
-                  <div key={i} className="flex-1 flex items-end">
-                    <div
-                      className="w-full rounded-[4px] bg-[#2563EB] opacity-70 hover:opacity-100 transition-opacity"
-                      style={{ height: `${h}%` }}
-                    />
-                  </div>
-                ))}
+              <div className="rounded-[14px] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                <p className="mb-1 text-[11px] font-medium text-[#9CA3AF]">Income</p>
+                <p className="text-[18px] font-semibold tracking-tight text-[#16A34A] sm:text-[22px]">$8,450</p>
+                <p className="mt-1 text-[11px] font-medium text-[#9CA3AF]">This month</p>
+              </div>
+              <div className="rounded-[14px] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                <p className="mb-1 text-[11px] font-medium text-[#9CA3AF]">Expenses</p>
+                <p className="text-[18px] font-semibold tracking-tight text-[#DC2626] sm:text-[22px]">$3,241</p>
+                <p className="mt-1 text-[11px] font-medium text-[#9CA3AF]">This month</p>
               </div>
             </div>
+            <div className="flex h-[72px] gap-[6px] sm:h-[90px] sm:gap-2">
+              {[65, 45, 80, 35, 55, 70, 40, 90, 60, 75, 50, 85].map((h, i) => (
+                <div key={i} className="flex flex-1 items-end">
+                  <div
+                    className="w-full rounded-[3px] bg-[#2563EB] opacity-60 transition-opacity hover:opacity-100 sm:rounded-[4px]"
+                    style={{ height: `${h}%` }}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
-      <section className="bg-white border-t border-[#F3F4F6] py-20 md:py-24">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-3xl md:text-[40px] font-bold text-[#111111] tracking-tight mb-4">
+      <section className="border-t border-[#F3F4F6] bg-white py-20 md:py-24">
+        <div className="mx-auto max-w-[1120px] px-6">
+          <div className="mb-12 text-center md:mb-16">
+            <h2 className="mb-4 text-3xl font-bold tracking-tight text-[#111111] md:text-[40px]">
               Everything you need, nothing you don&apos;t
             </h2>
-            <p className="text-[#6B7280] text-lg">
+            <p className="text-lg text-[#6B7280]">
               Clean, fast, and simple. Just like your finances should be.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-5 md:gap-6">
+          <div className="grid gap-5 md:grid-cols-3 md:gap-6">
             {features.map((feature, i) => (
               <motion.div
                 key={feature.title}
@@ -156,13 +150,13 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08, duration: 0.3 }}
-                className="rounded-[20px] bg-[#F8F8F6] p-7 md:p-8 hover:bg-white hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] transition-all duration-200"
+                className="rounded-[20px] bg-[#F8F8F6] p-7 transition-all duration-200 hover:bg-white hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] md:p-8"
               >
-                <div className="flex h-11 w-11 items-center justify-center rounded-[12px] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] mb-5">
+                <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-[12px] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
                   <feature.icon className="h-5 w-5 text-[#2563EB]" />
                 </div>
-                <h3 className="text-[17px] font-semibold text-[#111111] mb-2">{feature.title}</h3>
-                <p className="text-[15px] text-[#6B7280] leading-relaxed">{feature.desc}</p>
+                <h3 className="mb-2 text-[17px] font-semibold text-[#111111]">{feature.title}</h3>
+                <p className="text-[15px] leading-relaxed text-[#6B7280]">{feature.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -170,9 +164,9 @@ export default function LandingPage() {
       </section>
 
       <footer className="border-t border-[#F3F4F6] py-8">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mx-auto flex max-w-[1120px] flex-col items-center justify-between gap-4 px-6 sm:flex-row">
           <div className="flex items-center gap-2 text-[13px] text-[#9CA3AF]">
-            Built with <Heart className="h-3.5 w-3.5 text-[#DC2626] fill-[#DC2626]" /> by FinOS
+            Built with <Heart className="h-3.5 w-3.5 fill-[#DC2626] text-[#DC2626]" /> by FinOS
           </div>
           <p className="text-[13px] text-[#D1D5DB]">
             Phase 1 — Your Personal Finance OS
