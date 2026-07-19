@@ -74,8 +74,17 @@ export default function DashboardPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#E5E7EB] border-t-[#2563EB]" />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "256px" }}>
+        <div
+          style={{
+            height: "24px",
+            width: "24px",
+            animation: "spin 1s linear infinite",
+            borderRadius: "9999px",
+            border: "2px solid #E5E7EB",
+            borderTopColor: "#2563EB",
+          }}
+        />
       </div>
     )
   }
@@ -87,71 +96,107 @@ export default function DashboardPage() {
       title: "Total Balance",
       value: formatCurrency(stats.totalBalance),
       icon: Wallet,
-      iconBg: "bg-[#EFF6FF]",
-      iconColor: "text-[#2563EB]",
+      iconBg: "#EFF6FF",
+      iconColor: "#2563EB",
     },
     {
       title: "Income This Month",
       value: formatCurrency(stats.monthlyIncome),
       icon: TrendingUp,
-      iconBg: "bg-[#F0FDF4]",
-      iconColor: "text-[#16A34A]",
+      iconBg: "#F0FDF4",
+      iconColor: "#16A34A",
     },
     {
       title: "Expenses This Month",
       value: formatCurrency(stats.monthlyExpenses),
       icon: TrendingDown,
-      iconBg: "bg-[#FEF2F2]",
-      iconColor: "text-[#DC2626]",
+      iconBg: "#FEF2F2",
+      iconColor: "#DC2626",
     },
     {
       title: "Transactions",
       value: stats.transactionCount.toString(),
       icon: ArrowLeftRight,
-      iconBg: "bg-[#FFFBEB]",
-      iconColor: "text-[#F59E0B]",
+      iconBg: "#FFFBEB",
+      iconColor: "#F59E0B",
     },
   ]
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <h1 className="text-[28px] font-bold text-[#111111] tracking-tight">
+          <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>
             Good {new Date().getHours() < 12 ? "morning" : new Date().getHours() < 18 ? "afternoon" : "evening"}, {session?.user?.name?.split(" ")[0]}
           </h1>
-          <p className="text-[15px] text-[#6B7280] mt-0.5">Here&apos;s your financial overview</p>
+          <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>Here&apos;s your financial overview</p>
         </div>
         <Link
           href="/dashboard/transactions"
-          className="inline-flex items-center gap-2 rounded-full bg-[#2563EB] px-5 py-2.5 text-[14px] font-medium text-white hover:bg-[#1D4ED8] transition-all duration-150 shadow-sm active:scale-[0.98]"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            borderRadius: "9999px",
+            background: "#2563EB",
+            padding: "10px 20px",
+            fontSize: "14px",
+            fontWeight: 500,
+            color: "white",
+            transition: "all 150ms",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "#1D4ED8"
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "#2563EB"
+          }}
+          onMouseDown={(e) => {
+            e.currentTarget.style.transform = "scale(0.98)"
+          }}
+          onMouseUp={(e) => {
+            e.currentTarget.style.transform = "scale(1)"
+          }}
         >
-          <Plus className="h-4 w-4" />
+          <Plus style={{ height: "16px", width: "16px" }} />
           Add Transaction
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
         {statCards.map((card) => (
           <div
             key={card.title}
-            className="rounded-[20px] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] transition-shadow duration-200"
+            style={{
+              borderRadius: "20px",
+              background: "white",
+              padding: "20px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+              transition: "box-shadow 200ms",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)"
+            }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-[13px] font-medium text-[#6B7280]">{card.title}</span>
-              <div className={`flex h-9 w-9 items-center justify-center rounded-[10px] ${card.iconBg}`}>
-                <card.icon className={`h-[18px] w-[18px] ${card.iconColor}`} />
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+              <span style={{ fontSize: "13px", fontWeight: 500, color: "#6B7280" }}>{card.title}</span>
+              <div style={{ display: "flex", height: "36px", width: "36px", alignItems: "center", justifyContent: "center", borderRadius: "10px", background: card.iconBg }}>
+                <card.icon style={{ height: "18px", width: "18px", color: card.iconColor }} />
               </div>
             </div>
-            <p className="text-[24px] font-semibold text-[#111111] tracking-tight">{card.value}</p>
+            <p style={{ fontSize: "24px", fontWeight: 600, color: "#111111", letterSpacing: "-0.025em" }}>{card.value}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 rounded-[20px] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-          <h3 className="text-[17px] font-semibold text-[#111111] mb-5">Monthly Trend</h3>
-          <div className="h-[280px]">
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "16px" }}>
+        <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <h3 style={{ fontSize: "17px", fontWeight: 600, color: "#111111", marginBottom: "20px" }}>Monthly Trend</h3>
+          <div style={{ height: "280px" }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats.monthlyTrend} barGap={4}>
                 <XAxis
@@ -191,23 +236,23 @@ export default function DashboardPage() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex items-center gap-4 mt-4 pt-4 border-t border-[#F3F4F6]">
-            <div className="flex items-center gap-2">
-              <div className="h-2.5 w-2.5 rounded-full bg-[#2563EB]" />
-              <span className="text-[13px] text-[#6B7280]">Income</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px", marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #F3F4F6" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div style={{ height: "10px", width: "10px", borderRadius: "9999px", background: "#2563EB" }} />
+              <span style={{ fontSize: "13px", color: "#6B7280" }}>Income</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="h-2.5 w-2.5 rounded-full bg-[#E5E7EB]" />
-              <span className="text-[13px] text-[#6B7280]">Expenses</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div style={{ height: "10px", width: "10px", borderRadius: "9999px", background: "#E5E7EB" }} />
+              <span style={{ fontSize: "13px", color: "#6B7280" }}>Expenses</span>
             </div>
           </div>
         </div>
 
-        <div className="rounded-[20px] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-          <h3 className="text-[17px] font-semibold text-[#111111] mb-5">Spending by Category</h3>
+        <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <h3 style={{ fontSize: "17px", fontWeight: 600, color: "#111111", marginBottom: "20px" }}>Spending by Category</h3>
           {stats.categoryData.length > 0 ? (
             <>
-              <div className="h-[200px]">
+              <div style={{ height: "200px" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -241,81 +286,101 @@ export default function DashboardPage() {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="space-y-2.5 mt-4">
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "16px" }}>
                 {stats.categoryData.slice(0, 4).map((cat, i) => (
-                  <div key={cat.name} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
+                  <div key={cat.name} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                       <div
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }}
+                        style={{ height: "10px", width: "10px", borderRadius: "9999px", backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }}
                       />
-                      <span className="text-[13px] text-[#6B7280]">{cat.name}</span>
+                      <span style={{ fontSize: "13px", color: "#6B7280" }}>{cat.name}</span>
                     </div>
-                    <span className="text-[13px] font-medium text-[#111111]">{formatCurrency(cat.amount)}</span>
+                    <span style={{ fontSize: "13px", fontWeight: 500, color: "#111111" }}>{formatCurrency(cat.amount)}</span>
                   </div>
                 ))}
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center h-[280px] text-[#D1D5DB]">
-              <div className="h-16 w-16 rounded-full bg-[#F9FAFB] flex items-center justify-center mb-3">
-                <TrendingDown className="h-6 w-6 text-[#D1D5DB]" />
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "280px", color: "#D1D5DB" }}>
+              <div style={{ height: "64px", width: "64px", borderRadius: "9999px", background: "#F9FAFB", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "12px" }}>
+                <TrendingDown style={{ height: "24px", width: "24px", color: "#D1D5DB" }} />
               </div>
-              <p className="text-[14px] font-medium text-[#9CA3AF]">No expenses yet</p>
+              <p style={{ fontSize: "14px", fontWeight: 500, color: "#9CA3AF" }}>No expenses yet</p>
             </div>
           )}
         </div>
       </div>
 
-      <div className="rounded-[20px] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-        <div className="flex items-center justify-between mb-5">
-          <h3 className="text-[17px] font-semibold text-[#111111]">Recent Transactions</h3>
+      <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+          <h3 style={{ fontSize: "17px", fontWeight: 600, color: "#111111" }}>Recent Transactions</h3>
           <Link
             href="/dashboard/transactions"
-            className="text-[13px] font-medium text-[#2563EB] hover:text-[#1D4ED8] transition-colors"
+            style={{ fontSize: "13px", fontWeight: 500, color: "#2563EB", transition: "color 150ms" }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "#1D4ED8"
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "#2563EB"
+            }}
           >
             View all
           </Link>
         </div>
         {stats.recentTransactions.length > 0 ? (
-          <div className="space-y-1">
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
             {stats.recentTransactions.map((tx: any) => (
               <div
                 key={tx.id}
-                className="flex items-center justify-between rounded-[14px] px-4 py-3 hover:bg-[#F9FAFB] transition-colors duration-150"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  borderRadius: "14px",
+                  padding: "12px 16px",
+                  transition: "background-color 150ms",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#F9FAFB"
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent"
+                }}
               >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#F9FAFB] text-lg">
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div style={{ display: "flex", height: "40px", width: "40px", alignItems: "center", justifyContent: "center", borderRadius: "12px", background: "#F9FAFB", fontSize: "18px" }}>
                     {tx.category?.icon || "💰"}
                   </div>
                   <div>
-                    <p className="text-[14px] font-medium text-[#111111]">{tx.description}</p>
-                    <p className="text-[12px] text-[#9CA3AF]">
+                    <p style={{ fontSize: "14px", fontWeight: 500, color: "#111111" }}>{tx.description}</p>
+                    <p style={{ fontSize: "12px", color: "#9CA3AF" }}>
                       {tx.category?.name || "Uncategorized"} · {tx.account?.name}
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div style={{ textAlign: "right" }}>
                   <p
-                    className={`text-[14px] font-semibold ${
-                      tx.type === "income" ? "text-[#16A34A]" : "text-[#111111]"
-                    }`}
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: tx.type === "income" ? "#16A34A" : "#111111",
+                    }}
                   >
                     {tx.type === "income" ? "+" : "-"}
                     {formatCurrency(tx.amount)}
                   </p>
-                  <p className="text-[12px] text-[#D1D5DB]">{formatDate(tx.date)}</p>
+                  <p style={{ fontSize: "12px", color: "#D1D5DB" }}>{formatDate(tx.date)}</p>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-16 text-[#D1D5DB]">
-            <div className="h-16 w-16 rounded-full bg-[#F9FAFB] flex items-center justify-center mb-3">
-              <ArrowLeftRight className="h-6 w-6 text-[#D1D5DB]" />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "64px 0", color: "#D1D5DB" }}>
+            <div style={{ height: "64px", width: "64px", borderRadius: "9999px", background: "#F9FAFB", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "12px" }}>
+              <ArrowLeftRight style={{ height: "24px", width: "24px", color: "#D1D5DB" }} />
             </div>
-            <p className="text-[14px] font-medium text-[#9CA3AF]">No transactions yet</p>
-            <p className="text-[13px] text-[#D1D5DB] mt-1">Add your first transaction to get started</p>
+            <p style={{ fontSize: "14px", fontWeight: 500, color: "#9CA3AF" }}>No transactions yet</p>
+            <p style={{ fontSize: "13px", color: "#D1D5DB", marginTop: "4px" }}>Add your first transaction to get started</p>
           </div>
         )}
       </div>

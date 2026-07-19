@@ -9,11 +9,11 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-[#F8F8F6]">
+    <div style={{ minHeight: "100vh", background: "#F8F8F6" }}>
       <Sidebar />
-      <div className="lg:pl-64">
+      <div style={{ paddingLeft: "256px" }}>
         <TopBar />
-        <main className="p-6 lg:p-8">{children}</main>
+        <main style={{ padding: "32px" }}>{children}</main>
       </div>
     </div>
   )

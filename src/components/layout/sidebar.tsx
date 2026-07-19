@@ -13,7 +13,6 @@ import {
   Menu,
   X,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
 import * as React from "react"
 
 const navItems = [
@@ -27,66 +26,132 @@ export function Sidebar() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = React.useState(false)
 
+  const [hoveredItem, setHoveredItem] = React.useState<string | null>(null)
+  const [signOutHovered, setSignOutHovered] = React.useState(false)
+  const [closeBtnHovered, setCloseBtnHovered] = React.useState(false)
+
   return (
     <>
       <button
         onClick={() => setMobileOpen(true)}
-        className="fixed top-4 left-4 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm border border-[#E5E7EB] lg:hidden cursor-pointer"
+        style={{
+          position: "fixed",
+          top: "16px",
+          left: "16px",
+          zIndex: 50,
+          display: "flex",
+          height: "40px",
+          width: "40px",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: "9999px",
+          background: "white",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+          border: "1px solid #E5E7EB",
+          cursor: "pointer",
+        }}
       >
-        <Menu className="h-4 w-4 text-[#111111]" />
+        <Menu style={{ height: "16px", width: "16px", color: "#111111" }} />
       </button>
 
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm lg:hidden"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 40,
+            background: "rgba(0,0,0,0.2)",
+            backdropFilter: "blur(4px)",
+          }}
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       <aside
-        className={cn(
-          "fixed left-0 top-0 z-40 h-full w-[260px] bg-white border-r border-[#F3F4F6] transition-transform duration-200 ease-out lg:translate-x-0",
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
-        )}
+        style={{
+          position: "fixed",
+          left: 0,
+          top: 0,
+          zIndex: 40,
+          height: "100%",
+          width: "260px",
+          background: "white",
+          borderRight: "1px solid #F3F4F6",
+          transition: "transform 200ms ease-out",
+          transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
+        }}
       >
-        <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between px-6 py-5">
-            <Link href="/dashboard" className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-[#111111]">
-                <Sparkles className="h-4 w-4 text-white" />
+        <div style={{ display: "flex", height: "100%", flexDirection: "column" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingInline: "24px", paddingBlock: "20px" }}>
+            <Link href="/dashboard" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <div style={{ display: "flex", height: "36px", width: "36px", alignItems: "center", justifyContent: "center", borderRadius: "12px", background: "#111111" }}>
+                <Sparkles style={{ height: "16px", width: "16px", color: "white" }} />
               </div>
-              <span className="text-[17px] font-semibold text-[#111111] tracking-tight">
+              <span style={{ fontSize: "17px", fontWeight: 600, color: "#111111", letterSpacing: "-0.025em" }}>
                 FinOS
               </span>
             </Link>
             <button
               onClick={() => setMobileOpen(false)}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-[#6B7280] hover:bg-[#F3F4F6] lg:hidden cursor-pointer"
+              onMouseEnter={() => setCloseBtnHovered(true)}
+              onMouseLeave={() => setCloseBtnHovered(false)}
+              style={{
+                display: "flex",
+                height: "32px",
+                width: "32px",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "9999px",
+                color: "#6B7280",
+                background: closeBtnHovered ? "#F3F4F6" : undefined,
+                cursor: "pointer",
+              }}
             >
-              <X className="h-4 w-4" />
+              <X style={{ height: "16px", width: "16px" }} />
             </button>
           </div>
 
-          <nav className="flex-1 px-3 py-2">
+          <nav style={{ flex: 1, paddingInline: "12px", paddingBlock: "8px" }}>
             {navItems.map((item) => {
               const isActive = pathname === item.href
+              const isHovered = hoveredItem === item.href
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium transition-all duration-150 mb-0.5",
-                    isActive
-                      ? "bg-[#EFF6FF] text-[#2563EB]"
-                      : "text-[#6B7280] hover:bg-[#F9FAFB] hover:text-[#111111]"
-                  )}
+                  onMouseEnter={() => setHoveredItem(item.href)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    borderRadius: "12px",
+                    paddingInline: "12px",
+                    paddingBlock: "10px",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    transition: "all 0.15s",
+                    marginBottom: "2px",
+                    background: isActive
+                      ? "#EFF6FF"
+                      : isHovered
+                      ? "#F9FAFB"
+                      : undefined,
+                    color: isActive
+                      ? "#2563EB"
+                      : isHovered
+                      ? "#111111"
+                      : "#6B7280",
+                    textDecoration: "none",
+                  }}
                 >
                   <item.icon
-                    className={cn(
-                      "h-[18px] w-[18px]",
-                      isActive ? "text-[#2563EB]" : "text-[#9CA3AF]"
-                    )}
+                    style={{
+                      height: "18px",
+                      width: "18px",
+                      color: isActive ? "#2563EB" : "#9CA3AF",
+                    }}
                   />
                   {item.label}
                 </Link>
@@ -94,12 +159,29 @@ export function Sidebar() {
             })}
           </nav>
 
-          <div className="px-3 pb-4">
+          <div style={{ paddingInline: "12px", paddingBottom: "16px" }}>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium text-[#6B7280] hover:bg-[#FEF2F2] hover:text-[#DC2626] transition-all duration-150 cursor-pointer"
+              onMouseEnter={() => setSignOutHovered(true)}
+              onMouseLeave={() => setSignOutHovered(false)}
+              style={{
+                display: "flex",
+                width: "100%",
+                alignItems: "center",
+                gap: "12px",
+                borderRadius: "12px",
+                paddingInline: "12px",
+                paddingBlock: "10px",
+                fontSize: "14px",
+                fontWeight: 500,
+                color: signOutHovered ? "#DC2626" : "#6B7280",
+                background: signOutHovered ? "#FEF2F2" : undefined,
+                transition: "all 0.15s",
+                cursor: "pointer",
+                border: "none",
+              }}
             >
-              <LogOut className="h-[18px] w-[18px]" />
+              <LogOut style={{ height: "18px", width: "18px" }} />
               Sign Out
             </button>
           </div>

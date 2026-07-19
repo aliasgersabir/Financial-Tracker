@@ -1,18 +1,21 @@
 "use client"
 
 import * as React from "react"
-import { cn } from "@/lib/utils"
 
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+>(({ style, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn(
-      "rounded-[20px] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-shadow duration-200 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]",
-      className
-    )}
+    style={{
+      background: "white",
+      borderRadius: "20px",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+      padding: "24px",
+      transition: "box-shadow 0.2s",
+      ...style,
+    }}
     {...props}
   />
 ))
@@ -21,18 +24,34 @@ Card.displayName = "Card"
 const CardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("flex flex-col space-y-1.5 pb-4", className)} {...props} />
+>(({ style, ...props }, ref) => (
+  <div
+    ref={ref}
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      gap: "6px",
+      paddingBottom: "16px",
+      ...style,
+    }}
+    {...props}
+  />
 ))
 CardHeader.displayName = "CardHeader"
 
 const CardTitle = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
+>(({ style, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn("text-lg font-semibold text-[#111111] tracking-tight", className)}
+    style={{
+      fontSize: "18px",
+      fontWeight: 600,
+      color: "#111111",
+      letterSpacing: "-0.01em",
+      ...style,
+    }}
     {...props}
   />
 ))
@@ -41,8 +60,8 @@ CardTitle.displayName = "CardTitle"
 const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("", className)} {...props} />
+>(({ style, ...props }, ref) => (
+  <div ref={ref} style={{ ...style }} {...props} />
 ))
 CardContent.displayName = "CardContent"
 

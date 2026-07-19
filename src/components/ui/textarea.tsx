@@ -1,20 +1,33 @@
 "use client"
 
 import * as React from "react"
-import { cn } from "@/lib/utils"
 
 export interface TextareaProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, ...props }, ref) => {
+  ({ style, disabled, ...props }, ref) => {
     return (
       <textarea
-        className={cn(
-          "flex min-h-[80px] w-full rounded-xl border border-[#E5E7EB] bg-white px-3.5 py-2.5 text-sm text-[#111111] transition-all duration-150 placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 disabled:cursor-not-allowed disabled:opacity-50 resize-none",
-          className
-        )}
+        style={{
+          minHeight: "80px",
+          border: "1px solid #E5E7EB",
+          borderRadius: "12px",
+          padding: "12px 14px",
+          fontSize: "14px",
+          outline: "none",
+          width: "100%",
+          background: "white",
+          color: "#111111",
+          boxSizing: "border-box",
+          transition: "all 0.15s",
+          resize: "none",
+          opacity: disabled ? 0.5 : 1,
+          cursor: disabled ? "not-allowed" : "text",
+          ...style,
+        }}
         ref={ref}
+        disabled={disabled}
         {...props}
       />
     )

@@ -40,6 +40,17 @@ export default function CategoriesPage() {
     icon: "📦",
     color: "#2563EB",
   })
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null)
+  const [hoveredFilter, setHoveredFilter] = useState<string | null>(null)
+  const [addBtnHovered, setAddBtnHovered] = useState(false)
+  const [cancelBtnHovered, setCancelBtnHovered] = useState(false)
+  const [submitBtnHovered, setSubmitBtnHovered] = useState(false)
+  const [editBtnHover, setEditBtnHover] = useState<string | null>(null)
+  const [deleteBtnHover, setDeleteBtnHover] = useState<string | null>(null)
+  const [hoveredIcon, setHoveredIcon] = useState<string | null>(null)
+  const [hoveredColor, setHoveredColor] = useState<string | null>(null)
+  const [emptyAddHovered, setEmptyAddHovered] = useState(false)
+  const [inputFocused, setInputFocused] = useState(false)
 
   useEffect(() => {
     if (status === "loading") return
@@ -102,18 +113,21 @@ export default function CategoriesPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#E5E7EB] border-t-[#2563EB]" />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "256px" }}>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <div style={{ width: "24px", height: "24px", animation: "spin 1s linear infinite", borderRadius: "9999px", border: "2px solid #E5E7EB", borderTopColor: "#2563EB" }} />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <h1 className="text-[28px] font-bold text-[#111111] tracking-tight">Categories</h1>
-          <p className="text-[15px] text-[#6B7280] mt-0.5">Organize your transactions</p>
+          <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Categories</h1>
+          <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>Organize your transactions</p>
         </div>
         <button
           onClick={() => {
@@ -121,78 +135,139 @@ export default function CategoriesPage() {
             setForm({ name: "", type: "expense", icon: "📦", color: "#2563EB" })
             setModalOpen(true)
           }}
-          className="inline-flex items-center gap-2 rounded-full bg-[#2563EB] px-5 py-2.5 text-[14px] font-medium text-white hover:bg-[#1D4ED8] transition-all duration-150 shadow-sm active:scale-[0.98] cursor-pointer"
+          onMouseEnter={() => setAddBtnHovered(true)}
+          onMouseLeave={() => setAddBtnHovered(false)}
+          onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.98)" }}
+          onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1)" }}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            borderRadius: "9999px",
+            background: addBtnHovered ? "#1D4ED8" : "#2563EB",
+            padding: "10px 20px",
+            fontSize: "14px",
+            fontWeight: 500,
+            color: "white",
+            transition: "all 150ms ease",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+            cursor: "pointer",
+          }}
         >
-          <Plus className="h-4 w-4" />
+          <Plus style={{ width: "16px", height: "16px" }} />
           Add Category
         </button>
       </div>
 
-      <div className="flex gap-1.5 bg-white rounded-full p-1 border border-[#E5E7EB] w-fit">
-        {["all", "expense", "income"].map((type) => (
-          <button
-            key={type}
-            onClick={() => setFilterType(type)}
-            className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition-all duration-150 cursor-pointer ${
-              filterType === type
-                ? "bg-[#111111] text-white"
-                : "text-[#6B7280] hover:text-[#111111]"
-            }`}
-          >
-            {type.charAt(0).toUpperCase() + type.slice(1)}
-            {type !== "all" && (
-              <span className="ml-1.5 text-[11px] opacity-60">
-                ({categories.filter((c) => c.type === type).length})
-              </span>
-            )}
-          </button>
-        ))}
+      <div style={{ display: "flex", gap: "6px", background: "white", borderRadius: "9999px", padding: "4px", border: "1px solid #E5E7EB", width: "fit-content" }}>
+        {["all", "expense", "income"].map((type) => {
+          const isActive = filterType === type
+          const isHovered = hoveredFilter === type
+          return (
+            <button
+              key={type}
+              onClick={() => setFilterType(type)}
+              onMouseEnter={() => setHoveredFilter(type)}
+              onMouseLeave={() => setHoveredFilter(null)}
+              style={{
+                borderRadius: "9999px",
+                padding: "6px 16px",
+                fontSize: "13px",
+                fontWeight: 500,
+                transition: "all 150ms ease",
+                cursor: "pointer",
+                background: isActive ? "#111111" : "transparent",
+                color: isActive ? "white" : isHovered ? "#111111" : "#6B7280",
+              }}
+            >
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+              {type !== "all" && (
+                <span style={{ marginLeft: "6px", fontSize: "11px", opacity: 0.6 }}>
+                  ({categories.filter((c) => c.type === type).length})
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
       {filteredCategories.length > 0 ? (
-        <div className="space-y-8">
+        <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
           {(filterType === "all" || filterType === "expense") &&
             expenseCategories.length > 0 && (
               <div>
-                <h2 className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-wider mb-3">
+                <h2 style={{ fontSize: "13px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>
                   Expense
                 </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "12px" }}>
                   {expenseCategories.map((cat) => (
                     <div
                       key={cat.id}
-                      className="group relative rounded-[16px] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] transition-all duration-200 cursor-pointer"
+                      onMouseEnter={() => setHoveredCard(cat.id)}
+                      onMouseLeave={() => setHoveredCard(null)}
                       onClick={() => openEdit(cat)}
+                      style={{
+                        position: "relative",
+                        borderRadius: "16px",
+                        background: "white",
+                        padding: "16px",
+                        boxShadow: hoveredCard === cat.id ? "0 2px 8px rgba(0,0,0,0.06)" : "0 1px 3px rgba(0,0,0,0.04)",
+                        transition: "all 200ms ease",
+                        cursor: "pointer",
+                      }}
                     >
-                      <div className="flex items-center justify-between mb-3">
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
                         <div
-                          className="flex h-10 w-10 items-center justify-center rounded-[10px] text-lg"
-                          style={{ backgroundColor: cat.color + "15" }}
+                          style={{ display: "flex", width: "40px", height: "40px", alignItems: "center", justifyContent: "center", borderRadius: "10px", fontSize: "18px", backgroundColor: cat.color + "15" }}
                         >
                           {cat.icon}
                         </div>
-                        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                        <div style={{ display: "flex", gap: "2px", opacity: hoveredCard === cat.id ? 1 : 0, transition: "opacity 150ms ease" }}>
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
                               openEdit(cat)
                             }}
-                            className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-[#F3F4F6] cursor-pointer"
+                            onMouseEnter={() => setEditBtnHover(cat.id)}
+                            onMouseLeave={() => setEditBtnHover(null)}
+                            style={{
+                              display: "flex",
+                              width: "24px",
+                              height: "24px",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              borderRadius: "9999px",
+                              background: editBtnHover === cat.id ? "#F3F4F6" : "transparent",
+                              cursor: "pointer",
+                              transition: "background 150ms ease",
+                            }}
                           >
-                            <Pencil className="h-3 w-3 text-[#6B7280]" />
+                            <Pencil style={{ width: "12px", height: "12px", color: "#6B7280" }} />
                           </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
                               handleDelete(cat.id)
                             }}
-                            className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-[#FEF2F2] cursor-pointer"
+                            onMouseEnter={() => setDeleteBtnHover(cat.id)}
+                            onMouseLeave={() => setDeleteBtnHover(null)}
+                            style={{
+                              display: "flex",
+                              width: "24px",
+                              height: "24px",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              borderRadius: "9999px",
+                              background: deleteBtnHover === cat.id ? "#FEF2F2" : "transparent",
+                              cursor: "pointer",
+                              transition: "background 150ms ease",
+                            }}
                           >
-                            <Trash2 className="h-3 w-3 text-[#DC2626]" />
+                            <Trash2 style={{ width: "12px", height: "12px", color: "#DC2626" }} />
                           </button>
                         </div>
                       </div>
-                      <p className="text-[13px] font-medium text-[#111111] truncate">{cat.name}</p>
+                      <p style={{ fontSize: "13px", fontWeight: 500, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cat.name}</p>
                     </div>
                   ))}
                 </div>
@@ -202,45 +277,78 @@ export default function CategoriesPage() {
           {(filterType === "all" || filterType === "income") &&
             incomeCategories.length > 0 && (
               <div>
-                <h2 className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-wider mb-3">
+                <h2 style={{ fontSize: "13px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>
                   Income
                 </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "12px" }}>
                   {incomeCategories.map((cat) => (
                     <div
                       key={cat.id}
-                      className="group relative rounded-[16px] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] transition-all duration-200 cursor-pointer"
+                      onMouseEnter={() => setHoveredCard(cat.id)}
+                      onMouseLeave={() => setHoveredCard(null)}
                       onClick={() => openEdit(cat)}
+                      style={{
+                        position: "relative",
+                        borderRadius: "16px",
+                        background: "white",
+                        padding: "16px",
+                        boxShadow: hoveredCard === cat.id ? "0 2px 8px rgba(0,0,0,0.06)" : "0 1px 3px rgba(0,0,0,0.04)",
+                        transition: "all 200ms ease",
+                        cursor: "pointer",
+                      }}
                     >
-                      <div className="flex items-center justify-between mb-3">
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
                         <div
-                          className="flex h-10 w-10 items-center justify-center rounded-[10px] text-lg"
-                          style={{ backgroundColor: cat.color + "15" }}
+                          style={{ display: "flex", width: "40px", height: "40px", alignItems: "center", justifyContent: "center", borderRadius: "10px", fontSize: "18px", backgroundColor: cat.color + "15" }}
                         >
                           {cat.icon}
                         </div>
-                        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                        <div style={{ display: "flex", gap: "2px", opacity: hoveredCard === cat.id ? 1 : 0, transition: "opacity 150ms ease" }}>
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
                               openEdit(cat)
                             }}
-                            className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-[#F3F4F6] cursor-pointer"
+                            onMouseEnter={() => setEditBtnHover(cat.id)}
+                            onMouseLeave={() => setEditBtnHover(null)}
+                            style={{
+                              display: "flex",
+                              width: "24px",
+                              height: "24px",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              borderRadius: "9999px",
+                              background: editBtnHover === cat.id ? "#F3F4F6" : "transparent",
+                              cursor: "pointer",
+                              transition: "background 150ms ease",
+                            }}
                           >
-                            <Pencil className="h-3 w-3 text-[#6B7280]" />
+                            <Pencil style={{ width: "12px", height: "12px", color: "#6B7280" }} />
                           </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
                               handleDelete(cat.id)
                             }}
-                            className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-[#FEF2F2] cursor-pointer"
+                            onMouseEnter={() => setDeleteBtnHover(cat.id)}
+                            onMouseLeave={() => setDeleteBtnHover(null)}
+                            style={{
+                              display: "flex",
+                              width: "24px",
+                              height: "24px",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              borderRadius: "9999px",
+                              background: deleteBtnHover === cat.id ? "#FEF2F2" : "transparent",
+                              cursor: "pointer",
+                              transition: "background 150ms ease",
+                            }}
                           >
-                            <Trash2 className="h-3 w-3 text-[#DC2626]" />
+                            <Trash2 style={{ width: "12px", height: "12px", color: "#DC2626" }} />
                           </button>
                         </div>
                       </div>
-                      <p className="text-[13px] font-medium text-[#111111] truncate">{cat.name}</p>
+                      <p style={{ fontSize: "13px", fontWeight: 500, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cat.name}</p>
                     </div>
                   ))}
                 </div>
@@ -248,17 +356,31 @@ export default function CategoriesPage() {
             )}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="h-16 w-16 rounded-full bg-[#F3F4F6] flex items-center justify-center mb-4">
-            <span className="text-2xl">🏷️</span>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 0" }}>
+          <div style={{ width: "64px", height: "64px", borderRadius: "9999px", background: "#F3F4F6", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}>
+            <span style={{ fontSize: "24px" }}>🏷️</span>
           </div>
-          <p className="text-[16px] font-medium text-[#111111] mb-1">No categories yet</p>
-          <p className="text-[14px] text-[#9CA3AF] mb-6">Add categories to organize your transactions</p>
+          <p style={{ fontSize: "16px", fontWeight: 500, color: "#111111", marginBottom: "4px" }}>No categories yet</p>
+          <p style={{ fontSize: "14px", color: "#9CA3AF", marginBottom: "24px" }}>Add categories to organize your transactions</p>
           <button
             onClick={() => setModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-[#2563EB] px-5 py-2.5 text-[14px] font-medium text-white hover:bg-[#1D4ED8] transition-all duration-150 cursor-pointer"
+            onMouseEnter={() => setEmptyAddHovered(true)}
+            onMouseLeave={() => setEmptyAddHovered(false)}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              borderRadius: "9999px",
+              background: emptyAddHovered ? "#1D4ED8" : "#2563EB",
+              padding: "10px 20px",
+              fontSize: "14px",
+              fontWeight: 500,
+              color: "white",
+              transition: "all 150ms ease",
+              cursor: "pointer",
+            }}
           >
-            <Plus className="h-4 w-4" />
+            <Plus style={{ width: "16px", height: "16px" }} />
             Add Category
           </button>
         </div>
@@ -272,94 +394,175 @@ export default function CategoriesPage() {
         }}
         title={editingCategory ? "Edit Category" : "Add Category"}
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div>
-            <label className="block text-[13px] font-medium text-[#111111] mb-1.5">
+            <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>
               Category Name
             </label>
             <input
               type="text"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="h-11 w-full rounded-xl border border-[#E5E7EB] bg-white px-3.5 text-[14px] text-[#111111] focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 transition-all duration-150"
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
+              style={{
+                height: "44px",
+                width: "100%",
+                borderRadius: "12px",
+                border: inputFocused ? "1px solid #2563EB" : "1px solid #E5E7EB",
+                background: "white",
+                padding: "0 14px",
+                fontSize: "14px",
+                color: "#111111",
+                outline: "none",
+                transition: "all 150ms ease",
+                boxShadow: inputFocused ? "0 0 0 2px rgba(37,99,235,0.1)" : "none",
+              }}
               placeholder="e.g. Groceries"
               required
             />
           </div>
 
           <div>
-            <label className="block text-[13px] font-medium text-[#111111] mb-1.5">Type</label>
-            <div className="grid grid-cols-2 gap-2">
-              {["expense", "income"].map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setForm({ ...form, type })}
-                  className={`rounded-xl border py-2.5 text-[13px] font-medium transition-all duration-150 cursor-pointer ${
-                    form.type === type
-                      ? type === "income"
-                        ? "border-[#16A34A] bg-[#F0FDF4] text-[#16A34A]"
-                        : "border-[#DC2626] bg-[#FEF2F2] text-[#DC2626]"
-                      : "border-[#E5E7EB] text-[#6B7280] hover:border-[#D1D5DB]"
-                  }`}
-                >
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </button>
-              ))}
+            <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Type</label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+              {["expense", "income"].map((type) => {
+                const isActive = form.type === type
+                const isIncome = type === "income"
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setForm({ ...form, type })}
+                    style={{
+                      borderRadius: "12px",
+                      padding: "10px",
+                      fontSize: "13px",
+                      fontWeight: 500,
+                      transition: "all 150ms ease",
+                      cursor: "pointer",
+                      border: isActive
+                        ? isIncome ? "1px solid #16A34A" : "1px solid #DC2626"
+                        : "1px solid #E5E7EB",
+                      background: isActive
+                        ? isIncome ? "#F0FDF4" : "#FEF2F2"
+                        : "transparent",
+                      color: isActive
+                        ? isIncome ? "#16A34A" : "#DC2626"
+                        : "#6B7280",
+                    }}
+                  >
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
           <div>
-            <label className="block text-[13px] font-medium text-[#111111] mb-1.5">Icon</label>
-            <div className="grid grid-cols-10 gap-1.5 max-h-32 overflow-y-auto p-0.5">
-              {emojiIcons.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => setForm({ ...form, icon: emoji })}
-                  className={`flex h-9 w-9 items-center justify-center rounded-[10px] text-base transition-all duration-150 cursor-pointer ${
-                    form.icon === emoji
-                      ? "bg-[#EFF6FF] ring-2 ring-[#2563EB] scale-110"
-                      : "hover:bg-[#F3F4F6]"
-                  }`}
-                >
-                  {emoji}
-                </button>
-              ))}
+            <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Icon</label>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: "6px", maxHeight: "128px", overflowY: "auto", padding: "2px" }}>
+              {emojiIcons.map((emoji) => {
+                const isSelected = form.icon === emoji
+                const isHovered = hoveredIcon === emoji
+                return (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => setForm({ ...form, icon: emoji })}
+                    onMouseEnter={() => setHoveredIcon(emoji)}
+                    onMouseLeave={() => setHoveredIcon(null)}
+                    style={{
+                      display: "flex",
+                      width: "36px",
+                      height: "36px",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderRadius: "10px",
+                      fontSize: "16px",
+                      transition: "all 150ms ease",
+                      cursor: "pointer",
+                      background: isSelected ? "#EFF6FF" : isHovered ? "#F3F4F6" : "transparent",
+                      boxShadow: isSelected ? "0 0 0 2px #2563EB" : "none",
+                      transform: isSelected ? "scale(1.1)" : "scale(1)",
+                    }}
+                  >
+                    {emoji}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
           <div>
-            <label className="block text-[13px] font-medium text-[#111111] mb-1.5">Color</label>
-            <div className="flex gap-2">
-              {colors.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => setForm({ ...form, color })}
-                  className={`h-8 w-8 rounded-full transition-all duration-150 cursor-pointer ${
-                    form.color === color ? "ring-2 ring-offset-2 ring-[#111111] scale-110" : "hover:scale-105"
-                  }`}
-                  style={{ backgroundColor: color }}
-                />
-              ))}
+            <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Color</label>
+            <div style={{ display: "flex", gap: "8px" }}>
+              {colors.map((color) => {
+                const isSelected = form.color === color
+                const isHovered = hoveredColor === color
+                return (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => setForm({ ...form, color })}
+                    onMouseEnter={() => setHoveredColor(color)}
+                    onMouseLeave={() => setHoveredColor(null)}
+                    style={{
+                      width: "32px",
+                      height: "32px",
+                      borderRadius: "9999px",
+                      transition: "all 150ms ease",
+                      cursor: "pointer",
+                      backgroundColor: color,
+                      boxShadow: isSelected ? "0 0 0 2px white, 0 0 0 4px #111111" : "none",
+                      transform: isSelected ? "scale(1.1)" : isHovered ? "scale(1.05)" : "scale(1)",
+                    }}
+                  />
+                )
+              })}
             </div>
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div style={{ display: "flex", gap: "12px", paddingTop: "8px" }}>
             <button
               type="button"
               onClick={() => {
                 setModalOpen(false)
                 setEditingCategory(null)
               }}
-              className="flex-1 h-11 rounded-full border border-[#E5E7EB] bg-white text-[14px] font-medium text-[#111111] hover:bg-[#F9FAFB] transition-all duration-150 cursor-pointer"
+              onMouseEnter={() => setCancelBtnHovered(true)}
+              onMouseLeave={() => setCancelBtnHovered(false)}
+              style={{
+                flex: 1,
+                height: "44px",
+                borderRadius: "9999px",
+                border: "1px solid #E5E7EB",
+                background: cancelBtnHovered ? "#F9FAFB" : "white",
+                fontSize: "14px",
+                fontWeight: 500,
+                color: "#111111",
+                transition: "all 150ms ease",
+                cursor: "pointer",
+              }}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 h-11 rounded-full bg-[#2563EB] text-white text-[14px] font-medium hover:bg-[#1D4ED8] transition-all duration-150 shadow-sm cursor-pointer"
+              onMouseEnter={() => setSubmitBtnHovered(true)}
+              onMouseLeave={() => setSubmitBtnHovered(false)}
+              style={{
+                flex: 1,
+                height: "44px",
+                borderRadius: "9999px",
+                background: submitBtnHovered ? "#1D4ED8" : "#2563EB",
+                color: "white",
+                fontSize: "14px",
+                fontWeight: 500,
+                transition: "all 150ms ease",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+                cursor: "pointer",
+              }}
             >
               {editingCategory ? "Save Changes" : "Add Category"}
             </button>
