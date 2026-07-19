@@ -6,6 +6,9 @@ export async function GET() {
     tursoUrl: process.env.TURSO_DATABASE_URL ? "SET" : "NOT SET",
     tursoToken: process.env.TURSO_AUTH_TOKEN ? "SET" : "NOT SET",
     databaseUrl: process.env.DATABASE_URL || "NOT SET",
+    authSecret: process.env.AUTH_SECRET ? "SET" : "NOT SET",
+    authUrl: process.env.AUTH_URL || "NOT SET",
+    nextauthUrl: process.env.NEXTAUTH_URL || "NOT SET",
     nodeEnv: process.env.NODE_ENV,
   }
 
