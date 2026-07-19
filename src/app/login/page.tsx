@@ -2,12 +2,10 @@
 
 import { useState } from "react"
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Sparkles, Eye, EyeOff, ArrowRight } from "lucide-react"
 
 export default function LoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -29,7 +27,7 @@ export default function LoginPage() {
       setError("Invalid email or password")
       setLoading(false)
     } else {
-      router.push("/dashboard")
+      window.location.href = "/dashboard"
     }
   }
 

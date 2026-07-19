@@ -43,8 +43,9 @@ export default function AccountsPage() {
   })
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login")
-  }, [status, router])
+    if (status === "loading") return
+    if (status === "unauthenticated") window.location.href = "/login"
+  }, [status])
 
   useEffect(() => {
     if (status === "authenticated") fetchAccounts()

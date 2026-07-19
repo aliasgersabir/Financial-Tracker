@@ -43,11 +43,16 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
 
+  const [authChecked, setAuthChecked] = useState(false)
+
   useEffect(() => {
+    if (status === "loading") return
     if (status === "unauthenticated") {
-      router.push("/login")
+      window.location.href = "/login"
+    } else {
+      setAuthChecked(true)
     }
-  }, [status, router])
+  }, [status])
 
   useEffect(() => {
     if (status === "authenticated") {
