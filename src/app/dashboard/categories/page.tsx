@@ -83,7 +83,7 @@ export default function CategoriesPage() {
 
     setModalOpen(false)
     setEditingCategory(null)
-    setForm({ name: "", type: "expense", icon: "📦", color: "#2563EB" })
+    setForm({ name: "", type: filterType === "all" ? "expense" : filterType, icon: "📦", color: "#2563EB" })
     fetchCategories()
   }
 
@@ -132,7 +132,7 @@ export default function CategoriesPage() {
         <button
           onClick={() => {
             setEditingCategory(null)
-            setForm({ name: "", type: "expense", icon: "📦", color: "#2563EB" })
+            setForm({ name: "", type: filterType === "all" ? "expense" : filterType, icon: "📦", color: "#2563EB" })
             setModalOpen(true)
           }}
           onMouseEnter={() => setAddBtnHovered(true)}
@@ -363,7 +363,10 @@ export default function CategoriesPage() {
           <p style={{ fontSize: "16px", fontWeight: 500, color: "#111111", marginBottom: "4px" }}>No categories yet</p>
           <p style={{ fontSize: "14px", color: "#9CA3AF", marginBottom: "24px" }}>Add categories to organize your transactions</p>
           <button
-            onClick={() => setModalOpen(true)}
+            onClick={() => {
+              setForm({ name: "", type: filterType === "all" ? "expense" : filterType, icon: "📦", color: "#2563EB" })
+              setModalOpen(true)
+            }}
             onMouseEnter={() => setEmptyAddHovered(true)}
             onMouseLeave={() => setEmptyAddHovered(false)}
             style={{

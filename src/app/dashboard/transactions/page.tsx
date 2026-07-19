@@ -109,7 +109,7 @@ export default function TransactionsPage() {
       amount: "",
       description: "",
       date: new Date().toISOString().split("T")[0],
-      type: "expense",
+      type: filterType === "all" ? "expense" : filterType,
       accountId: accounts[0]?.id || "",
       categoryId: "",
     })
@@ -180,7 +180,7 @@ export default function TransactionsPage() {
                 amount: "",
                 description: "",
                 date: new Date().toISOString().split("T")[0],
-                type: "expense",
+                type: filterType === "all" ? "expense" : filterType,
                 accountId: accounts[0]?.id || "",
                 categoryId: "",
               })

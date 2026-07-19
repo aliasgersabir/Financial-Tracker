@@ -229,7 +229,7 @@ export default function DashboardPage() {
                 />
                 <Bar
                   dataKey="expenses"
-                  fill="#E5E7EB"
+                  fill="#DC2626"
                   radius={[6, 6, 0, 0]}
                   name="Expenses"
                 />
@@ -242,7 +242,7 @@ export default function DashboardPage() {
               <span style={{ fontSize: "13px", color: "#6B7280" }}>Income</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <div style={{ height: "10px", width: "10px", borderRadius: "9999px", background: "#E5E7EB" }} />
+              <div style={{ height: "10px", width: "10px", borderRadius: "9999px", background: "#DC2626" }} />
               <span style={{ fontSize: "13px", color: "#6B7280" }}>Expenses</span>
             </div>
           </div>
@@ -369,7 +369,7 @@ export default function DashboardPage() {
                     {tx.type === "income" ? "+" : "-"}
                     {formatCurrency(tx.amount)}
                   </p>
-                  <p style={{ fontSize: "12px", color: "#D1D5DB" }}>{formatDate(tx.date)}</p>
+                  <p style={{ fontSize: "12px", color: "#9CA3AF" }}>{formatDate(tx.date)}</p>
                 </div>
               </div>
             ))}

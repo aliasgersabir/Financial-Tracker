@@ -25,34 +25,46 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = React.useState(false)
+  const [isDesktop, setIsDesktop] = React.useState(true)
 
   const [hoveredItem, setHoveredItem] = React.useState<string | null>(null)
   const [signOutHovered, setSignOutHovered] = React.useState(false)
   const [closeBtnHovered, setCloseBtnHovered] = React.useState(false)
 
+  React.useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 768)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
+
+  const sidebarVisible = isDesktop || mobileOpen
+
   return (
     <>
-      <button
-        onClick={() => setMobileOpen(true)}
-        style={{
-          position: "fixed",
-          top: "16px",
-          left: "16px",
-          zIndex: 50,
-          display: "flex",
-          height: "40px",
-          width: "40px",
-          alignItems: "center",
-          justifyContent: "center",
-          borderRadius: "9999px",
-          background: "white",
-          boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-          border: "1px solid #E5E7EB",
-          cursor: "pointer",
-        }}
-      >
-        <Menu style={{ height: "16px", width: "16px", color: "#111111" }} />
-      </button>
+      {!isDesktop && (
+        <button
+          onClick={() => setMobileOpen(true)}
+          style={{
+            position: "fixed",
+            top: "16px",
+            left: "16px",
+            zIndex: 50,
+            display: "flex",
+            height: "40px",
+            width: "40px",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "9999px",
+            background: "white",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+            border: "1px solid #E5E7EB",
+            cursor: "pointer",
+          }}
+        >
+          <Menu style={{ height: "16px", width: "16px", color: "#111111" }} />
+        </button>
+      )}
 
       {mobileOpen && (
         <div
@@ -78,7 +90,7 @@ export function Sidebar() {
           background: "white",
           borderRight: "1px solid #F3F4F6",
           transition: "transform 200ms ease-out",
-          transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
+          transform: sidebarVisible ? "translateX(0)" : "translateX(-100%)",
         }}
       >
         <div style={{ display: "flex", height: "100%", flexDirection: "column" }}>
@@ -91,24 +103,26 @@ export function Sidebar() {
                 FinOS
               </span>
             </Link>
-            <button
-              onClick={() => setMobileOpen(false)}
-              onMouseEnter={() => setCloseBtnHovered(true)}
-              onMouseLeave={() => setCloseBtnHovered(false)}
-              style={{
-                display: "flex",
-                height: "32px",
-                width: "32px",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "9999px",
-                color: "#6B7280",
-                background: closeBtnHovered ? "#F3F4F6" : undefined,
-                cursor: "pointer",
-              }}
-            >
-              <X style={{ height: "16px", width: "16px" }} />
-            </button>
+            {!isDesktop && (
+              <button
+                onClick={() => setMobileOpen(false)}
+                onMouseEnter={() => setCloseBtnHovered(true)}
+                onMouseLeave={() => setCloseBtnHovered(false)}
+                style={{
+                  display: "flex",
+                  height: "32px",
+                  width: "32px",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: "9999px",
+                  color: "#6B7280",
+                  background: closeBtnHovered ? "#F3F4F6" : undefined,
+                  cursor: "pointer",
+                }}
+              >
+                <X style={{ height: "16px", width: "16px" }} />
+              </button>
+            )}
           </div>
 
           <nav style={{ flex: 1, paddingInline: "12px", paddingBlock: "8px" }}>

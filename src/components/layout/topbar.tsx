@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react"
 import { getInitials } from "@/lib/utils"
-import { Bell, Search } from "lucide-react"
+import { Bell } from "lucide-react"
 
 export function TopBar() {
   const { data: session } = useSession()
@@ -36,44 +36,7 @@ export function TopBar() {
         }}
       >
         <div style={{ width: "40px" }} />
-        <div
-          style={{
-            flex: 1,
-            maxWidth: "28rem",
-            marginLeft: "16px",
-            marginRight: "16px",
-          }}
-        >
-          <div style={{ position: "relative" }}>
-            <Search
-              style={{
-                position: "absolute",
-                left: "12px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                height: "16px",
-                width: "16px",
-                color: "#9CA3AF",
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Search..."
-              style={{
-                height: "36px",
-                width: "100%",
-                borderRadius: "9999px",
-                border: "1px solid #E5E7EB",
-                background: "white",
-                paddingLeft: "36px",
-                paddingRight: "16px",
-                fontSize: "14px",
-                color: "#111111",
-                transition: "all 0.15s",
-              }}
-            />
-          </div>
-        </div>
+        <div style={{ flex: 1 }} />
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <button
             style={{
