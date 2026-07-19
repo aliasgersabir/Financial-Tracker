@@ -80,8 +80,10 @@ export async function POST(req: Request) {
       { status: 201 }
     )
   } catch (error) {
+    console.error("Register error:", error)
+    const message = error instanceof Error ? error.message : "Unknown error"
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", details: message },
       { status: 500 }
     )
   }
