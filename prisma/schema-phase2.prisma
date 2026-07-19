@@ -1,3 +1,7 @@
+// ============================================================
+// Phase 2 Schema — Complete
+// ============================================================
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,89 +12,91 @@ datasource db {
 }
 
 // ============================================================
-// Core Models
+// EXISTING MODELS (with additions marked)
 // ============================================================
 
 model User {
-  id               String           @id @default(cuid())
-  name             String?
-  email            String           @unique
-  emailVerified    DateTime?
-  password         String
-  image            String?
-  accounts         Account[]
-  categories       Category[]
-  transactions     Transaction[]
-  budgets          Budget[]
-  goals            Goal[]
-  recurringRules   RecurringRule[]
-  importJobs       ImportJob[]
-  calendarEvents   CalendarEvent[]
-  notifications    Notification[]
-  reports          Report[]
-  tags             Tag[]
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  password      String
+  image         String?
+  accounts      Account[]
+  categories    Category[]
+  transactions  Transaction[]
+  budgets       Budget[]
+  goals         Goal[]
+  recurringRules    RecurringRule[]
+  importJobs        ImportJob[]
+  calendarEvents    CalendarEvent[]
+  notifications     Notification[]
+  reports           Report[]
+  tags              Tag[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model Account {
-  id              String           @id @default(cuid())
-  name            String
-  type            String           @default("checking")
-  balance         Float            @default(0)
-  currency        String           @default("USD")
-  color           String           @default("#6366f1")
-  icon            String?
-  userId          String
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions    Transaction[]
-  calendarEvents  CalendarEvent[]
-  importJobs      ImportJob[]
-  recurringRules  RecurringRule[]
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  id            String        @id @default(cuid())
+  name          String
+  type          String        @default("checking")
+  balance       Float         @default(0)
+  currency      String        @default("USD")
+  color         String        @default("#6366f1")
+  icon          String?
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions  Transaction[]
+  calendarEvents CalendarEvent[]
+  importJobs     ImportJob[]
+  recurringRules RecurringRule[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model Category {
-  id              String           @id @default(cuid())
-  name            String
-  type            String           @default("expense")
-  icon            String           @default("📦")
-  color           String           @default("#6366f1")
-  userId          String
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions    Transaction[]
-  budgetItems     BudgetItem[]
-  calendarEvents  CalendarEvent[]
-  recurringRules  RecurringRule[]
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  id            String        @id @default(cuid())
+  name          String
+  type          String        @default("expense")
+  icon          String        @default("📦")
+  color         String        @default("#6366f1")
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions  Transaction[]
+  budgetItems       BudgetItem[]
+  calendarEvents    CalendarEvent[]
+  recurringRules    RecurringRule[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   @@unique([name, userId, type])
 }
 
 model Transaction {
-  id              String           @id @default(cuid())
+  id              String          @id @default(cuid())
   amount          Float
   description     String
-  date            DateTime         @default(now())
-  type            String           @default("expense")
+  date            DateTime        @default(now())
+  type            String          @default("expense")
   accountId       String
-  account         Account          @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  account         Account         @relation(fields: [accountId], references: [id], onDelete: Cascade)
   categoryId      String?
-  category        Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  category        Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   userId          String
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   recurringRuleId String?
-  recurringRule   RecurringRule?   @relation(fields: [recurringRuleId], references: [id], onDelete: SetNull)
+  recurringRule   RecurringRule?  @relation(fields: [recurringRuleId], references: [id], onDelete: SetNull)
   tags            TransactionTag[]
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 }
 
 // ============================================================
-// Budget Management
+// NEW MODELS — Phase 2
 // ============================================================
+
+// --- Budget Management ---
 
 model Budget {
   id        String       @id @default(cuid())
@@ -119,9 +125,7 @@ model BudgetItem {
   @@unique([budgetId, categoryId])
 }
 
-// ============================================================
-// Savings Goals
-// ============================================================
+// --- Savings Goals ---
 
 model Goal {
   id              String             @id @default(cuid())
@@ -151,9 +155,7 @@ model GoalContribution {
   createdAt DateTime @default(now())
 }
 
-// ============================================================
-// Recurring Transactions
-// ============================================================
+// --- Recurring Transactions ---
 
 model RecurringRule {
   id              String        @id @default(cuid())
@@ -178,9 +180,7 @@ model RecurringRule {
   updatedAt       DateTime      @updatedAt
 }
 
-// ============================================================
-// Statement Import
-// ============================================================
+// --- Statement Import ---
 
 model ImportJob {
   id            String        @id @default(cuid())
@@ -216,35 +216,31 @@ model ImportRow {
   createdAt           DateTime  @default(now())
 }
 
-// ============================================================
-// Calendar Events
-// ============================================================
+// --- Calendar Events ---
 
 model CalendarEvent {
-  id                 String    @id @default(cuid())
+  id                 String   @id @default(cuid())
   userId             String
-  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title              String
   description        String?
   amount             Float?
   accountId          String?
-  account            Account?  @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  account            Account? @relation(fields: [accountId], references: [id], onDelete: SetNull)
   categoryId         String?
   category           Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   date               DateTime
   endDate            DateTime?
-  type               String    @default("custom")
-  recurrence         String    @default("none")
-  recurrenceInterval Int       @default(1)
+  type               String   @default("custom")
+  recurrence         String   @default("none")
+  recurrenceInterval Int      @default(1)
   reminderBefore     Int?
-  isCompleted        Boolean   @default(false)
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  isCompleted        Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
 
-// ============================================================
-// Notifications
-// ============================================================
+// --- Notifications ---
 
 model Notification {
   id        String   @id @default(cuid())
@@ -259,9 +255,7 @@ model Notification {
   createdAt DateTime @default(now())
 }
 
-// ============================================================
-// Reports
-// ============================================================
+// --- Reports ---
 
 model Report {
   id        String   @id @default(cuid())
@@ -275,9 +269,7 @@ model Report {
   createdAt DateTime @default(now())
 }
 
-// ============================================================
-// Tags
-// ============================================================
+// --- Tags ---
 
 model Tag {
   id           String           @id @default(cuid())

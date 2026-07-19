@@ -12,6 +12,13 @@ import {
   Sparkles,
   Menu,
   X,
+  PiggyBank,
+  Target,
+  Repeat,
+  Calendar,
+  Upload,
+  Bell,
+  BarChart3,
 } from "lucide-react"
 import * as React from "react"
 
@@ -20,6 +27,14 @@ const navItems = [
   { href: "/dashboard/accounts", label: "Accounts", icon: Wallet },
   { href: "/dashboard/transactions", label: "Transactions", icon: ArrowLeftRight },
   { href: "/dashboard/categories", label: "Categories", icon: Tag },
+  { href: "/dashboard/budgets", label: "Budgets", icon: PiggyBank },
+  { href: "/dashboard/goals", label: "Goals", icon: Target },
+  { href: "/dashboard/recurring", label: "Recurring", icon: Repeat },
+  { href: "/dashboard/calendar", label: "Calendar", icon: Calendar },
+  { href: "/dashboard/imports", label: "Imports", icon: Upload },
+  { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
+  { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
+  { href: "/dashboard/tags", label: "Tags", icon: Tag },
 ]
 
 export function Sidebar() {
@@ -125,7 +140,7 @@ export function Sidebar() {
             )}
           </div>
 
-          <nav style={{ flex: 1, paddingInline: "12px", paddingBlock: "8px" }}>
+          <nav style={{ flex: 1, paddingInline: "12px", paddingBlock: "8px", overflowY: "auto" }}>
             {navItems.map((item) => {
               const isActive = pathname === item.href
               const isHovered = hoveredItem === item.href
