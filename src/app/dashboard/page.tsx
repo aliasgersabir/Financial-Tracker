@@ -56,6 +56,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
+      fetch("/api/health?migrate=true").catch(() => {})
       fetchStats()
     }
   }, [status])
