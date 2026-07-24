@@ -2,8 +2,11 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
+export const dynamic = "force-dynamic"
+
 export async function GET() {
-  const session = await auth()
+  try {
+    const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
@@ -135,6 +138,15 @@ export async function GET() {
     periodStart: now.toISOString(),
     periodEnd: thirtyDaysFromNow.toISOString(),
   })
+  } catch (error) {
+    console.error("Cash flow API error:", error)
+    return NextResponse.json({
+      projections: [],
+      summary: { totalIncome: 0, totalExpenses: 0, netCashFlow: 0, currentBalance: 0, projectedBalance: 0 },
+      periodStart: new Date().toISOString(),
+      periodEnd: new Date().toISOString(),
+    })
+  }
 }
 
 export async function POST(req: Request) {

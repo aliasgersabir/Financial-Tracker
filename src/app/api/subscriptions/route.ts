@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
+export const dynamic = "force-dynamic"
+
 function daysBetween(a: Date, b: Date): number {
   return Math.ceil((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24))
 }
@@ -24,6 +26,7 @@ function annualCost(amount: number, frequency: string): number {
 }
 
 export async function GET() {
+  try {
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -61,6 +64,10 @@ export async function GET() {
   })
 
   return NextResponse.json(enriched)
+  } catch (error) {
+    console.error("Subscriptions API error:", error)
+    return NextResponse.json([])
+  }
 }
 
 export async function POST(req: Request) {

@@ -185,23 +185,30 @@ export default function DashboardPage() {
   useEffect(() => {
     if (status === "authenticated") {
       fetch("/api/health?migrate=true").catch(() => {})
+
+      fetch("/api/stats").then((r) => r.json()).then((data) => {
+        setStats(data)
+      }).catch(() => setStats({
+        totalBalance: 0, monthlyIncome: 0, monthlyExpenses: 0,
+        categoryData: [], monthlyTrend: [], recentTransactions: [],
+        accountCount: 0, transactionCount: 0,
+      })).finally(() => setLoading(false))
+
       Promise.allSettled([
-        fetch("/api/stats").then((r) => r.json()),
         fetch("/api/health-score").then((r) => r.json()),
         fetch("/api/insights").then((r) => r.json()),
         fetch("/api/cash-flow").then((r) => r.json()),
         fetch("/api/goals/overview").then((r) => r.json()),
         fetch("/api/budgets/overview").then((r) => r.json()),
         fetch("/api/subscriptions").then((r) => r.json()),
-      ]).then(([statsRes, healthRes, insightsRes, cashRes, goalsRes, budgetsRes, subsRes]) => {
-        if (statsRes.status === "fulfilled") setStats(statsRes.value)
+      ]).then(([healthRes, insightsRes, cashRes, goalsRes, budgetsRes, subsRes]) => {
         if (healthRes.status === "fulfilled") setHealthScore(healthRes.value)
         if (insightsRes.status === "fulfilled") setInsights(Array.isArray(insightsRes.value) ? insightsRes.value : [])
         if (cashRes.status === "fulfilled") setCashFlow(cashRes.value)
         if (goalsRes.status === "fulfilled") setGoals(goalsRes.value.goals || [])
         if (budgetsRes.status === "fulfilled") setBudgets(budgetsRes.value.items || [])
         if (subsRes.status === "fulfilled") setSubscriptions(Array.isArray(subsRes.value) ? subsRes.value : [])
-      }).finally(() => setLoading(false))
+      })
     }
   }, [status])
 

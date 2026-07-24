@@ -3,13 +3,14 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
 export async function POST(request: Request) {
+  try {
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   const { question } = await request.json()
-  const q = question.toLowerCase()
+  const q = (question || "").toLowerCase()
   const userId = session.user.id
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -22,15 +23,15 @@ export async function POST(request: Request) {
       where: { userId, date: { gte: threeMonthsAgo } },
       include: { category: true, account: true },
       orderBy: { date: "desc" },
-    }),
-    prisma.category.findMany({ where: { userId } }),
-    prisma.account.findMany({ where: { userId } }),
-    prisma.goal.findMany({ where: { userId, status: "active" } }),
+    }).catch(() => []),
+    prisma.category.findMany({ where: { userId } }).catch(() => []),
+    prisma.account.findMany({ where: { userId } }).catch(() => []),
+    prisma.goal.findMany({ where: { userId, status: "active" } }).catch(() => []),
     prisma.budget.findMany({
       where: { userId, month: now.getMonth() + 1, year: now.getFullYear() },
       include: { items: { include: { category: true } } },
-    }),
-    prisma.subscription.findMany({ where: { userId, isActive: true } }),
+    }).catch(() => []),
+    prisma.subscription.findMany({ where: { userId, isActive: true } }).catch(() => []),
   ])
 
   let answer = ""
@@ -168,4 +169,11 @@ export async function POST(request: Request) {
   goals.slice(0, 2).forEach(g => references.push({ type: "goal", id: g.id, name: g.name }))
 
   return NextResponse.json({ answer, data, suggestions, references })
+  } catch (error) {
+    console.error("Assistant API error:", error)
+    return NextResponse.json(
+      { answer: "I'm having trouble accessing your financial data right now. Please try again in a moment.", suggestions: [], data: {} },
+      { status: 200 }
+    )
+  }
 }

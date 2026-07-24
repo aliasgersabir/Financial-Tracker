@@ -68,14 +68,15 @@ export default function AssistantPage() {
       const assistantMsg: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
-        content: data.answer || "I couldn't generate a response.",
+        content: data.answer || "I couldn't generate a response. Please try again.",
         suggestions: data.suggestions || [],
         data: data.data || {},
         timestamp: new Date(),
       }
 
       setMessages((prev) => [...prev, assistantMsg])
-    } catch {
+    } catch (err) {
+      console.error("Assistant error:", err)
       const errorMsg: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
