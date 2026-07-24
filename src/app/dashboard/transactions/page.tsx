@@ -73,23 +73,26 @@ export default function TransactionsPage() {
   }, [status])
 
   const fetchData = async () => {
-    const [txRes, accRes, catRes] = await Promise.all([
-      fetch("/api/transactions"),
-      fetch("/api/accounts"),
-      fetch("/api/categories"),
-    ])
-    const [txData, accData, catData] = await Promise.all([
-      txRes.json(),
-      accRes.json(),
-      catRes.json(),
-    ])
-    setTransactions(txData)
-    setAccounts(accData)
-    setCategories(catData)
-    if (accData.length > 0 && !form.accountId) {
-      setForm((prev) => ({ ...prev, accountId: accData[0].id }))
+    try {
+      const [txRes, accRes, catRes] = await Promise.all([
+        fetch("/api/transactions"),
+        fetch("/api/accounts"),
+        fetch("/api/categories"),
+      ])
+      const txData = txRes.ok ? await txRes.json() : []
+      const accData = accRes.ok ? await accRes.json() : []
+      const catData = catRes.ok ? await catRes.json() : []
+      setTransactions(Array.isArray(txData) ? txData : [])
+      setAccounts(Array.isArray(accData) ? accData : [])
+      setCategories(Array.isArray(catData) ? catData : [])
+      if (Array.isArray(accData) && accData.length > 0 && !form.accountId) {
+        setForm((prev) => ({ ...prev, accountId: accData[0].id }))
+      }
+    } catch (err) {
+      console.error("Failed to load transactions:", err)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -97,23 +100,26 @@ export default function TransactionsPage() {
     const url = editingTx ? `/api/transactions/${editingTx.id}` : "/api/transactions"
     const method = editingTx ? "PUT" : "POST"
 
-    await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    })
-
-    setModalOpen(false)
-    setEditingTx(null)
-    setForm({
-      amount: "",
-      description: "",
-      date: new Date().toISOString().split("T")[0],
-      type: filterType === "all" ? "expense" : filterType,
-      accountId: accounts[0]?.id || "",
-      categoryId: "",
-    })
-    fetchData()
+    try {
+      await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+      setModalOpen(false)
+      setEditingTx(null)
+      setForm({
+        amount: "",
+        description: "",
+        date: new Date().toISOString().split("T")[0],
+        type: filterType === "all" ? "expense" : filterType,
+        accountId: accounts[0]?.id || "",
+        categoryId: "",
+      })
+      fetchData()
+    } catch (err) {
+      console.error("Failed to save transaction:", err)
+    }
   }
 
   const handleDelete = async (id: string) => {
