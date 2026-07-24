@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@libsql/client"
+import { prisma } from "@/lib/prisma"
 
 export async function POST() {
-  const url = process.env.TURSO_DATABASE_URL
-  const authToken = process.env.TURSO_AUTH_TOKEN
-
-  if (!url || !authToken) {
-    return NextResponse.json({ error: "Missing Turso credentials" }, { status: 500 })
+  try {
+    await prisma.$queryRaw`SELECT 1 as test`
+  } catch {
+    return NextResponse.json({ error: "Database not connected" }, { status: 500 })
   }
-
-  const db = createClient({ url, authToken })
 
   const migrations = [
     `CREATE TABLE IF NOT EXISTS "Budget" (
@@ -171,8 +168,6 @@ export async function POST() {
       FOREIGN KEY ("transactionId") REFERENCES "Transaction"("id") ON DELETE CASCADE,
       FOREIGN KEY ("tagId") REFERENCES "Tag"("id") ON DELETE CASCADE
     )`,
-    // Add recurringRuleId column to Transaction if it doesn't exist
-    `ALTER TABLE "Transaction" ADD COLUMN "recurringRuleId" TEXT DEFAULT NULL`,
   ]
 
   let success = 0
@@ -181,14 +176,35 @@ export async function POST() {
 
   for (const sql of migrations) {
     try {
-      await db.execute(sql)
+      await prisma.$executeRawUnsafe(sql)
       success++
-    } catch (e: any) {
-      if (e.message?.includes("already exists")) {
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e)
+      if (msg.includes("already exists")) {
         skipped++
       } else {
-        errors.push(e.message)
+        errors.push(msg)
       }
+    }
+  }
+
+  try {
+    const cols = await prisma.$queryRawUnsafe<{ name: string }[]>(
+      `PRAGMA table_info("Transaction")`
+    )
+    const hasRecurringCol = cols.some(c => c.name === "recurringRuleId")
+    if (!hasRecurringCol) {
+      await prisma.$executeRawUnsafe(`ALTER TABLE "Transaction" ADD COLUMN "recurringRuleId" TEXT DEFAULT NULL`)
+      success++
+    } else {
+      skipped++
+    }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (!msg.includes("already exists")) {
+      errors.push(msg)
+    } else {
+      skipped++
     }
   }
 
