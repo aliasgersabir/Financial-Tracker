@@ -1,20 +1,33 @@
 "use client"
 
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import {
   Wallet,
   TrendingUp,
   TrendingDown,
   ArrowLeftRight,
   Plus,
+  Sparkles,
+  Target,
+  Receipt,
+  CreditCard,
+  MessageCircle,
+  BarChart3,
+  ArrowRight,
+  Lightbulb,
+  Calendar,
+  CircleDollarSign,
+  Activity,
+  Zap,
+  Camera,
+  BookOpen,
 } from "lucide-react"
-import Link from "next/link"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import {
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
@@ -22,6 +35,8 @@ import {
   PieChart,
   Pie,
   Cell,
+  AreaChart,
+  Area,
 } from "recharts"
 
 interface Stats {
@@ -35,14 +50,127 @@ interface Stats {
   transactionCount: number
 }
 
+interface HealthScore {
+  score: number
+  breakdown: {
+    savings: { score: number; max: number; rate: number }
+    budget: { score: number; max: number; discipline: number }
+    goals: { score: number; max: number; progress: number }
+    emergency: { score: number; max: number; months: number }
+    consistency: { score: number; max: number; ratio: number }
+    debt: { score: number; max: number; ratio: number }
+  }
+}
+
+interface Insight {
+  id: string
+  type: string
+  title: string
+  explanation: string
+  action: string
+  confidence: number
+  priority: string
+}
+
+interface Goal {
+  id: string
+  name: string
+  target: number
+  current: number
+  percentage: number
+}
+
+interface BudgetItem {
+  id: string
+  category: { name: string; icon: string } | null
+  budgeted: number
+  spent: number
+  percentage: number
+  status: string
+}
+
+interface Subscription {
+  id: string
+  name: string
+  amount: number
+  frequency: string
+  monthlyCost: number
+  color: string
+}
+
 const CHART_COLORS = ["#2563EB", "#6B7280", "#16A34A", "#F59E0B", "#DC2626"]
+
+function getHealthColor(score: number): string {
+  if (score >= 80) return "#16A34A"
+  if (score >= 50) return "#F59E0B"
+  return "#DC2626"
+}
+
+function getHealthLabel(score: number): string {
+  if (score >= 80) return "Excellent"
+  if (score >= 50) return "Fair"
+  return "Needs Attention"
+}
+
+const CircularProgress = ({ score, size = 120 }: { score: number; size?: number }) => {
+  const radius = (size - 12) / 2
+  const circumference = 2 * Math.PI * radius
+  const offset = circumference - (score / 100) * circumference
+  const color = getHealthColor(score)
+
+  return (
+    <div style={{ position: "relative", width: size, height: size }}>
+      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="#F3F4F6"
+          strokeWidth="8"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth="8"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          style={{ transition: "stroke-dashoffset 1s ease" }}
+        />
+      </svg>
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <span style={{ fontSize: "28px", fontWeight: 700, color: "#111111", lineHeight: 1 }}>
+          {score}
+        </span>
+        <span style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "2px" }}>/ 100</span>
+      </div>
+    </div>
+  )
+}
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
-  const router = useRouter()
   const [stats, setStats] = useState<Stats | null>(null)
+  const [healthScore, setHealthScore] = useState<HealthScore | null>(null)
+  const [insights, setInsights] = useState<Insight[]>([])
+  const [goals, setGoals] = useState<Goal[]>([])
+  const [budgets, setBudgets] = useState<BudgetItem[]>([])
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
+  const [cashFlow, setCashFlow] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-
   const [authChecked, setAuthChecked] = useState(false)
 
   useEffect(() => {
@@ -57,334 +185,617 @@ export default function DashboardPage() {
   useEffect(() => {
     if (status === "authenticated") {
       fetch("/api/health?migrate=true").catch(() => {})
-      fetchStats()
+      Promise.allSettled([
+        fetch("/api/stats").then((r) => r.json()),
+        fetch("/api/health-score").then((r) => r.json()),
+        fetch("/api/insights").then((r) => r.json()),
+        fetch("/api/cash-flow").then((r) => r.json()),
+        fetch("/api/goals/overview").then((r) => r.json()),
+        fetch("/api/budgets/overview").then((r) => r.json()),
+        fetch("/api/subscriptions").then((r) => r.json()),
+      ]).then(([statsRes, healthRes, insightsRes, cashRes, goalsRes, budgetsRes, subsRes]) => {
+        if (statsRes.status === "fulfilled") setStats(statsRes.value)
+        if (healthRes.status === "fulfilled") setHealthScore(healthRes.value)
+        if (insightsRes.status === "fulfilled") setInsights(Array.isArray(insightsRes.value) ? insightsRes.value : [])
+        if (cashRes.status === "fulfilled") setCashFlow(cashRes.value)
+        if (goalsRes.status === "fulfilled") setGoals(goalsRes.value.goals || [])
+        if (budgetsRes.status === "fulfilled") setBudgets(budgetsRes.value.items || [])
+        if (subsRes.status === "fulfilled") setSubscriptions(Array.isArray(subsRes.value) ? subsRes.value : [])
+      }).finally(() => setLoading(false))
     }
   }, [status])
-
-  const fetchStats = async () => {
-    try {
-      const res = await fetch("/api/stats")
-      const data = await res.json()
-      setStats(data)
-    } catch {
-      console.error("Failed to fetch stats")
-    } finally {
-      setLoading(false)
-    }
-  }
 
   if (status === "loading" || loading) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "256px" }}>
-        <div
-          style={{
-            height: "24px",
-            width: "24px",
-            animation: "spin 1s linear infinite",
-            borderRadius: "9999px",
-            border: "2px solid #E5E7EB",
-            borderTopColor: "#2563EB",
-          }}
-        />
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
+          <div
+            style={{
+              height: "24px",
+              width: "24px",
+              animation: "spin 1s linear infinite",
+              borderRadius: "9999px",
+              border: "2px solid #E5E7EB",
+              borderTopColor: "#2563EB",
+            }}
+          />
+          <p style={{ fontSize: "13px", color: "#9CA3AF" }}>Loading your dashboard...</p>
+        </div>
       </div>
     )
   }
 
   if (!stats) return null
 
-  const statCards = [
-    {
-      title: "Total Balance",
-      value: formatCurrency(stats.totalBalance),
-      icon: Wallet,
-      iconBg: "#EFF6FF",
-      iconColor: "#2563EB",
-    },
-    {
-      title: "Income This Month",
-      value: formatCurrency(stats.monthlyIncome),
-      icon: TrendingUp,
-      iconBg: "#F0FDF4",
-      iconColor: "#16A34A",
-    },
-    {
-      title: "Expenses This Month",
-      value: formatCurrency(stats.monthlyExpenses),
-      icon: TrendingDown,
-      iconBg: "#FEF2F2",
-      iconColor: "#DC2626",
-    },
-    {
-      title: "Transactions",
-      value: stats.transactionCount.toString(),
-      icon: ArrowLeftRight,
-      iconBg: "#FFFBEB",
-      iconColor: "#F59E0B",
-    },
-  ]
+  const greeting = () => {
+    const h = new Date().getHours()
+    if (h < 12) return "Good morning"
+    if (h < 18) return "Good afternoon"
+    return "Good evening"
+  }
+
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  })
+
+  const netCashFlow = stats.monthlyIncome - stats.monthlyExpenses
+  const savingsRate = stats.monthlyIncome > 0 ? ((netCashFlow / stats.monthlyIncome) * 100).toFixed(0) : "0"
+  const activeSubCost = subscriptions.reduce((s, sub) => s + sub.monthlyCost, 0)
+  const upcomingBills = (cashFlow?.projections || []).filter((p: any) => p.type === "expense").slice(0, 5)
+
+  const monthlyStory = (() => {
+    if (netCashFlow > 0) {
+      return `You earned ${formatCurrency(stats.monthlyIncome)} and spent ${formatCurrency(stats.monthlyExpenses)} this month, saving ${savingsRate}% of your income. ${stats.categoryData.length > 0 ? `Your biggest expense was ${stats.categoryData[0]?.name}.` : ""} Keep up the positive momentum.`
+    }
+    return `You earned ${formatCurrency(stats.monthlyIncome)} and spent ${formatCurrency(stats.monthlyExpenses)} this month. You're spending more than you earn — consider reviewing your expenses to get back on track.`
+  })()
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div>
-          <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>
-            Good {new Date().getHours() < 12 ? "morning" : new Date().getHours() < 18 ? "afternoon" : "evening"}, {session?.user?.name?.split(" ")[0]}
-          </h1>
-          <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>Here&apos;s your financial overview</p>
-        </div>
-        <Link
-          href="/dashboard/transactions"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px",
-            borderRadius: "9999px",
-            background: "#2563EB",
-            padding: "10px 20px",
-            fontSize: "14px",
-            fontWeight: 500,
-            color: "white",
-            transition: "all 150ms",
-            boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#1D4ED8"
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "#2563EB"
-          }}
-          onMouseDown={(e) => {
-            e.currentTarget.style.transform = "scale(0.98)"
-          }}
-          onMouseUp={(e) => {
-            e.currentTarget.style.transform = "scale(1)"
-          }}
-        >
-          <Plus style={{ height: "16px", width: "16px" }} />
-          Add Transaction
-        </Link>
-      </div>
+    <>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
+      <div style={{ display: "flex", flexDirection: "column", gap: "24px", maxWidth: "1400px" }}>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
-        {statCards.map((card) => (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em", margin: 0 }}>
+              {greeting()}, {session?.user?.name?.split(" ")[0]}
+            </h1>
+            <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "4px" }}>{today}</p>
+          </div>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <Link
+              href="/dashboard/transactions"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                borderRadius: "9999px",
+                background: "#2563EB",
+                padding: "10px 20px",
+                fontSize: "14px",
+                fontWeight: 500,
+                color: "white",
+                transition: "all 0.15s",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+                textDecoration: "none",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "#1D4ED8" }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "#2563EB" }}
+            >
+              <Plus style={{ height: "16px", width: "16px" }} />
+              Add Transaction
+            </Link>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
+          {[
+            { title: "Total Balance", value: formatCurrency(stats.totalBalance), icon: Wallet, iconBg: "#EFF6FF", iconColor: "#2563EB" },
+            { title: "Income This Month", value: formatCurrency(stats.monthlyIncome), icon: TrendingUp, iconBg: "#F0FDF4", iconColor: "#16A34A" },
+            { title: "Expenses This Month", value: formatCurrency(stats.monthlyExpenses), icon: TrendingDown, iconBg: "#FEF2F2", iconColor: "#DC2626" },
+            { title: "Net Cash Flow", value: formatCurrency(netCashFlow), icon: ArrowLeftRight, iconBg: netCashFlow >= 0 ? "#F0FDF4" : "#FEF2F2", iconColor: netCashFlow >= 0 ? "#16A34A" : "#DC2626" },
+          ].map((card) => (
+            <div
+              key={card.title}
+              style={{
+                borderRadius: "20px",
+                background: "white",
+                padding: "20px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                transition: "box-shadow 0.2s",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)" }}
+              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)" }}
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
+                <span style={{ fontSize: "13px", fontWeight: 500, color: "#6B7280" }}>{card.title}</span>
+                <div style={{ display: "flex", height: "36px", width: "36px", alignItems: "center", justifyContent: "center", borderRadius: "10px", background: card.iconBg }}>
+                  <card.icon style={{ height: "18px", width: "18px", color: card.iconColor }} />
+                </div>
+              </div>
+              <p style={{ fontSize: "22px", fontWeight: 600, color: "#111111", letterSpacing: "-0.025em", margin: 0 }}>{card.value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "16px" }}>
           <div
-            key={card.title}
             style={{
               borderRadius: "20px",
               background: "white",
-              padding: "20px",
+              padding: "24px",
               boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-              transition: "box-shadow 200ms",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)"
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "12px",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-              <span style={{ fontSize: "13px", fontWeight: 500, color: "#6B7280" }}>{card.title}</span>
-              <div style={{ display: "flex", height: "36px", width: "36px", alignItems: "center", justifyContent: "center", borderRadius: "10px", background: card.iconBg }}>
-                <card.icon style={{ height: "18px", width: "18px", color: card.iconColor }} />
+            <div style={{ fontSize: "13px", fontWeight: 500, color: "#6B7280" }}>Financial Health</div>
+            {healthScore ? (
+              <>
+                <CircularProgress score={healthScore.score} />
+                <span style={{ fontSize: "14px", fontWeight: 600, color: getHealthColor(healthScore.score) }}>
+                  {getHealthLabel(healthScore.score)}
+                </span>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%", marginTop: "8px" }}>
+                  {[
+                    { label: "Savings", score: healthScore.breakdown.savings.score, max: healthScore.breakdown.savings.max },
+                    { label: "Budget", score: healthScore.breakdown.budget.score, max: healthScore.breakdown.budget.max },
+                    { label: "Goals", score: healthScore.breakdown.goals.score, max: healthScore.breakdown.goals.max },
+                    { label: "Emergency", score: healthScore.breakdown.emergency.score, max: healthScore.breakdown.emergency.max },
+                  ].map((item) => (
+                    <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ fontSize: "11px", color: "#9CA3AF", width: "56px", flexShrink: 0 }}>{item.label}</span>
+                      <div style={{ flex: 1, height: "4px", borderRadius: "2px", background: "#F3F4F6" }}>
+                        <div style={{ height: "100%", width: `${(item.score / item.max) * 100}%`, borderRadius: "2px", background: getHealthColor((item.score / item.max) * 100), transition: "width 1s ease" }} />
+                      </div>
+                      <span style={{ fontSize: "11px", color: "#6B7280", width: "24px", textAlign: "right" }}>{item.score}/{item.max}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "32px 0" }}>
+                <Activity style={{ height: "32px", width: "32px", color: "#D1D5DB" }} />
+                <p style={{ fontSize: "13px", color: "#9CA3AF", marginTop: "8px" }}>No data yet</p>
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+            <div style={{ gridColumn: "span 2" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                <div style={{ height: "24px", width: "24px", borderRadius: "6px", background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Sparkles style={{ height: "14px", width: "14px", color: "#2563EB" }} />
+                </div>
+                <span style={{ fontSize: "15px", fontWeight: 600, color: "#111111" }}>AI Insights</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+                {insights.length > 0 ? insights.slice(0, 3).map((insight) => (
+                  <div
+                    key={insight.id}
+                    style={{
+                      borderRadius: "16px",
+                      background: insight.priority === "high" ? "#FEF2F2" : insight.priority === "medium" ? "#FFFBEB" : "#F0FDF4",
+                      border: `1px solid ${insight.priority === "high" ? "#FECACA" : insight.priority === "medium" ? "#FEF3C7" : "#BBF7D0"}`,
+                      padding: "16px",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
+                      <Lightbulb style={{ height: "14px", width: "14px", color: insight.priority === "high" ? "#DC2626" : insight.priority === "medium" ? "#F59E0B" : "#16A34A" }} />
+                      <span style={{ fontSize: "13px", fontWeight: 600, color: "#111111" }}>{insight.title}</span>
+                    </div>
+                    <p style={{ fontSize: "12px", color: "#6B7280", margin: 0, lineHeight: 1.5 }}>
+                      {insight.explanation}
+                    </p>
+                  </div>
+                )) : (
+                  <>
+                    <div style={{ borderRadius: "16px", background: "#F0FDF4", border: "1px solid #BBF7D0", padding: "16px" }}>
+                      <p style={{ fontSize: "13px", fontWeight: 600, color: "#16A34A", margin: 0 }}>No overspending detected</p>
+                      <p style={{ fontSize: "12px", color: "#6B7280", marginTop: "4px", margin: "4px 0 0 0" }}>Your spending looks healthy this month.</p>
+                    </div>
+                    <div style={{ borderRadius: "16px", background: "#FFFBEB", border: "1px solid #FEF3C7", padding: "16px" }}>
+                      <p style={{ fontSize: "13px", fontWeight: 600, color: "#F59E0B", margin: 0 }}>Keep tracking</p>
+                      <p style={{ fontSize: "12px", color: "#6B7280", marginTop: "4px", margin: "4px 0 0 0" }}>Add more data for better insights.</p>
+                    </div>
+                    <div style={{ borderRadius: "16px", background: "#EFF6FF", border: "1px solid #BFDBFE", padding: "16px" }}>
+                      <p style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB", margin: 0 }}>Set a budget</p>
+                      <p style={{ fontSize: "12px", color: "#6B7280", marginTop: "4px", margin: "4px 0 0 0" }}>Create budgets to stay on track.</p>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
-            <p style={{ fontSize: "24px", fontWeight: 600, color: "#111111", letterSpacing: "-0.025em" }}>{card.value}</p>
-          </div>
-        ))}
-      </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "16px" }}>
-        <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-          <h3 style={{ fontSize: "17px", fontWeight: 600, color: "#111111", marginBottom: "20px" }}>Monthly Trend</h3>
-          <div style={{ height: "280px" }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.monthlyTrend} barGap={4}>
-                <XAxis
-                  dataKey="month"
-                  tick={{ fontSize: 12, fill: "#9CA3AF" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 12, fill: "#9CA3AF" }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}
-                />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: "12px",
-                    border: "1px solid #F3F4F6",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                    fontSize: "13px",
-                    padding: "8px 12px",
-                  }}
-                  cursor={{ fill: "#F9FAFB" }}
-                />
-                <Bar
-                  dataKey="income"
-                  fill="#2563EB"
-                  radius={[6, 6, 0, 0]}
-                  name="Income"
-                />
-                <Bar
-                  dataKey="expenses"
-                  fill="#DC2626"
-                  radius={[6, 6, 0, 0]}
-                  name="Expenses"
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #F3F4F6" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <div style={{ height: "10px", width: "10px", borderRadius: "9999px", background: "#2563EB" }} />
-              <span style={{ fontSize: "13px", color: "#6B7280" }}>Income</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <div style={{ height: "10px", width: "10px", borderRadius: "9999px", background: "#DC2626" }} />
-              <span style={{ fontSize: "13px", color: "#6B7280" }}>Expenses</span>
+            <div style={{ gridColumn: "span 2" }}>
+              <div
+                style={{
+                  borderRadius: "16px",
+                  background: "linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 100%)",
+                  border: "1px solid #E5E7EB",
+                  padding: "20px",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                  <BookOpen style={{ height: "16px", width: "16px", color: "#2563EB" }} />
+                  <span style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Monthly Story</span>
+                </div>
+                <p style={{ fontSize: "14px", color: "#374151", lineHeight: 1.7, margin: 0 }}>{monthlyStory}</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-          <h3 style={{ fontSize: "17px", fontWeight: 600, color: "#111111", marginBottom: "20px" }}>Spending by Category</h3>
-          {stats.categoryData.length > 0 ? (
-            <>
-              <div style={{ height: "200px" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={stats.categoryData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={55}
-                      outerRadius={80}
-                      paddingAngle={3}
-                      dataKey="amount"
-                      nameKey="name"
-                      strokeWidth={0}
-                    >
-                      {stats.categoryData.map((_, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={CHART_COLORS[index % CHART_COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        borderRadius: "12px",
-                        border: "1px solid #F3F4F6",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                        fontSize: "13px",
-                        padding: "8px 12px",
-                      }}
-                      formatter={(value) => formatCurrency(Number(value))}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+          <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: "0 0 16px 0" }}>Cash Flow Forecast</h3>
+            <div style={{ height: "200px" }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={stats.monthlyTrend}>
+                  <defs>
+                    <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#16A34A" stopOpacity={0.2} />
+                      <stop offset="100%" stopColor="#16A34A" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#DC2626" stopOpacity={0.2} />
+                      <stop offset="100%" stopColor="#DC2626" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: "12px", border: "1px solid #F3F4F6", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: "13px", padding: "8px 12px" }}
+                    formatter={(value) => formatCurrency(Number(value))}
+                  />
+                  <Area type="monotone" dataKey="income" stroke="#16A34A" fill="url(#incomeGrad)" strokeWidth={2} name="Income" />
+                  <Area type="monotone" dataKey="expenses" stroke="#DC2626" fill="url(#expenseGrad)" strokeWidth={2} name="Expenses" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <div style={{ display: "flex", gap: "16px", marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #F3F4F6" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ height: "8px", width: "8px", borderRadius: "9999px", background: "#16A34A" }} />
+                <span style={{ fontSize: "12px", color: "#6B7280" }}>Income</span>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "16px" }}>
-                {stats.categoryData.slice(0, 4).map((cat, i) => (
-                  <div key={cat.name} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <div
-                        style={{ height: "10px", width: "10px", borderRadius: "9999px", backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }}
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ height: "8px", width: "8px", borderRadius: "9999px", background: "#DC2626" }} />
+                <span style={{ fontSize: "12px", color: "#6B7280" }}>Expenses</span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+              <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>Spending by Category</h3>
+            </div>
+            {stats.categoryData.length > 0 ? (
+              <>
+                <div style={{ height: "180px" }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={stats.categoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="amount" nameKey="name" strokeWidth={0}>
+                        {stats.categoryData.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{ borderRadius: "12px", border: "1px solid #F3F4F6", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: "13px", padding: "8px 12px" }}
+                        formatter={(value) => formatCurrency(Number(value))}
                       />
-                      <span style={{ fontSize: "13px", color: "#6B7280" }}>{cat.name}</span>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {stats.categoryData.slice(0, 4).map((cat, i) => (
+                    <div key={cat.name} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <div style={{ height: "8px", width: "8px", borderRadius: "9999px", background: CHART_COLORS[i % CHART_COLORS.length] }} />
+                        <span style={{ fontSize: "13px", color: "#6B7280" }}>{cat.name}</span>
+                      </div>
+                      <span style={{ fontSize: "13px", fontWeight: 500, color: "#111111" }}>{formatCurrency(cat.amount)}</span>
                     </div>
-                    <span style={{ fontSize: "13px", fontWeight: 500, color: "#111111" }}>{formatCurrency(cat.amount)}</span>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "280px" }}>
+                <TrendingDown style={{ height: "24px", width: "24px", color: "#D1D5DB" }} />
+                <p style={{ fontSize: "13px", color: "#9CA3AF", marginTop: "8px" }}>No expenses this month</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {goals.length > 0 && (
+          <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <Target style={{ height: "16px", width: "16px", color: "#2563EB" }} />
+                <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>Goal Progress</h3>
+              </div>
+              <Link href="/dashboard/goals" style={{ fontSize: "13px", fontWeight: 500, color: "#2563EB", textDecoration: "none" }}>
+                View all
+              </Link>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {goals.slice(0, 4).map((goal) => (
+                <div key={goal.id}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+                    <span style={{ fontSize: "14px", fontWeight: 500, color: "#111111" }}>{goal.name}</span>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
+                      <span style={{ fontSize: "14px", fontWeight: 600, color: "#111111" }}>{formatCurrency(goal.current)}</span>
+                      <span style={{ fontSize: "12px", color: "#9CA3AF" }}>/ {formatCurrency(goal.target)}</span>
+                    </div>
+                  </div>
+                  <div style={{ position: "relative", height: "8px", borderRadius: "4px", background: "#F3F4F6" }}>
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: 0,
+                        top: 0,
+                        height: "100%",
+                        width: `${Math.min(goal.percentage, 100)}%`,
+                        borderRadius: "4px",
+                        background: goal.percentage >= 80 ? "#16A34A" : goal.percentage >= 50 ? "#F59E0B" : "#2563EB",
+                        transition: "width 1s ease",
+                      }}
+                    />
+                    <span
+                      style={{
+                        position: "absolute",
+                        right: "8px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        color: goal.percentage > 50 ? "white" : "#6B7280",
+                      }}
+                    >
+                      {goal.percentage.toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {budgets.length > 0 && (
+          <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <CircleDollarSign style={{ height: "16px", width: "16px", color: "#16A34A" }} />
+                <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>Budget Status</h3>
+              </div>
+              <Link href="/dashboard/budgets" style={{ fontSize: "13px", fontWeight: 500, color: "#2563EB", textDecoration: "none" }}>
+                View all
+              </Link>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+              {budgets.slice(0, 4).map((b) => (
+                <div
+                  key={b.id}
+                  style={{
+                    borderRadius: "14px",
+                    padding: "16px",
+                    background: b.status === "exceeded" ? "#FEF2F2" : b.status === "warning" ? "#FFFBEB" : "#F9FAFB",
+                    border: `1px solid ${b.status === "exceeded" ? "#FECACA" : b.status === "warning" ? "#FEF3C7" : "#F3F4F6"}`,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px" }}>
+                    <span style={{ fontSize: "16px" }}>{b.category?.icon || "💰"}</span>
+                    <span style={{ fontSize: "13px", fontWeight: 500, color: "#111111" }}>{b.category?.name || "Uncategorized"}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "8px" }}>
+                    <span style={{ fontSize: "18px", fontWeight: 600, color: b.status === "exceeded" ? "#DC2626" : "#111111" }}>
+                      {formatCurrency(b.spent)}
+                    </span>
+                    <span style={{ fontSize: "12px", color: "#9CA3AF" }}>/ {formatCurrency(b.budgeted)}</span>
+                  </div>
+                  <div style={{ height: "4px", borderRadius: "2px", background: "#E5E7EB" }}>
+                    <div style={{ height: "100%", width: `${Math.min(b.percentage, 100)}%`, borderRadius: "2px", background: b.status === "exceeded" ? "#DC2626" : b.status === "warning" ? "#F59E0B" : "#16A34A", transition: "width 0.5s ease" }} />
+                  </div>
+                  <span style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "4px", display: "block" }}>{b.percentage}% used</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
+          <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <Calendar style={{ height: "16px", width: "16px", color: "#F59E0B" }} />
+                <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>Upcoming Bills</h3>
+              </div>
+              <Link href="/dashboard/cashflow" style={{ fontSize: "13px", fontWeight: 500, color: "#2563EB", textDecoration: "none" }}>
+                View all
+              </Link>
+            </div>
+            {upcomingBills.length > 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {upcomingBills.map((bill: any, i: number) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "10px 12px",
+                      borderRadius: "12px",
+                      background: "#F9FAFB",
+                    }}
+                  >
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <p style={{ fontSize: "13px", fontWeight: 500, color: "#111111", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
+                        {bill.description}
+                      </p>
+                      <p style={{ fontSize: "11px", color: "#9CA3AF", margin: "2px 0 0 0" }}>
+                        {formatDate(bill.date)}
+                      </p>
+                    </div>
+                    <span style={{ fontSize: "13px", fontWeight: 600, color: "#DC2626", flexShrink: 0, marginLeft: "8px" }}>
+                      -{formatCurrency(bill.amount)}
+                    </span>
                   </div>
                 ))}
               </div>
-            </>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "280px", color: "#D1D5DB" }}>
-              <div style={{ height: "64px", width: "64px", borderRadius: "9999px", background: "#F9FAFB", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "12px" }}>
-                <TrendingDown style={{ height: "24px", width: "24px", color: "#D1D5DB" }} />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "32px 0" }}>
+                <Calendar style={{ height: "24px", width: "24px", color: "#D1D5DB" }} />
+                <p style={{ fontSize: "13px", color: "#9CA3AF", marginTop: "8px" }}>No upcoming bills</p>
               </div>
-              <p style={{ fontSize: "14px", fontWeight: 500, color: "#9CA3AF" }}>No expenses yet</p>
-            </div>
-          )}
-        </div>
-      </div>
+            )}
+          </div>
 
-      <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
-          <h3 style={{ fontSize: "17px", fontWeight: 600, color: "#111111" }}>Recent Transactions</h3>
-          <Link
-            href="/dashboard/transactions"
-            style={{ fontSize: "13px", fontWeight: 500, color: "#2563EB", transition: "color 150ms" }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = "#1D4ED8"
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = "#2563EB"
-            }}
-          >
-            View all
-          </Link>
+          <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <ArrowLeftRight style={{ height: "16px", width: "16px", color: "#2563EB" }} />
+                <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>Recent Transactions</h3>
+              </div>
+              <Link href="/dashboard/transactions" style={{ fontSize: "13px", fontWeight: 500, color: "#2563EB", textDecoration: "none" }}>
+                View all
+              </Link>
+            </div>
+            {stats.recentTransactions.length > 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                {stats.recentTransactions.slice(0, 5).map((tx: any) => (
+                  <div
+                    key={tx.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "10px 12px",
+                      borderRadius: "12px",
+                      transition: "background 0.15s",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "#F9FAFB" }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent" }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, flex: 1 }}>
+                      <div style={{ height: "32px", width: "32px", borderRadius: "8px", background: "#F9FAFB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", flexShrink: 0 }}>
+                        {tx.category?.icon || "💰"}
+                      </div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <p style={{ fontSize: "13px", fontWeight: 500, color: "#111111", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
+                          {tx.description}
+                        </p>
+                        <p style={{ fontSize: "11px", color: "#9CA3AF", margin: "2px 0 0 0" }}>
+                          {formatDate(tx.date)}
+                        </p>
+                      </div>
+                    </div>
+                    <span style={{ fontSize: "13px", fontWeight: 600, color: tx.type === "income" ? "#16A34A" : "#111111", flexShrink: 0 }}>
+                      {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "32px 0" }}>
+                <ArrowLeftRight style={{ height: "24px", width: "24px", color: "#D1D5DB" }} />
+                <p style={{ fontSize: "13px", color: "#9CA3AF", marginTop: "8px" }}>No transactions yet</p>
+              </div>
+            )}
+          </div>
+
+          <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+              <CreditCard style={{ height: "16px", width: "16px", color: "#7C3AED" }} />
+              <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>Subscriptions</h3>
+            </div>
+            {subscriptions.length > 0 ? (
+              <>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "16px" }}>
+                  {subscriptions.slice(0, 4).map((sub) => (
+                    <div key={sub.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, flex: 1 }}>
+                        <div style={{ height: "8px", width: "8px", borderRadius: "9999px", background: sub.color || "#6B7280", flexShrink: 0 }} />
+                        <span style={{ fontSize: "13px", color: "#6B7280", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
+                          {sub.name}
+                        </span>
+                      </div>
+                      <span style={{ fontSize: "13px", fontWeight: 500, color: "#111111", flexShrink: 0 }}>
+                        {formatCurrency(sub.monthlyCost)}/mo
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ padding: "12px", borderRadius: "12px", background: "#F9FAFB", borderTop: "1px solid #F3F4F6", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: "13px", fontWeight: 600, color: "#6B7280" }}>Total monthly</span>
+                  <span style={{ fontSize: "16px", fontWeight: 700, color: "#111111" }}>{formatCurrency(activeSubCost)}</span>
+                </div>
+              </>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "32px 0" }}>
+                <CreditCard style={{ height: "24px", width: "24px", color: "#D1D5DB" }} />
+                <p style={{ fontSize: "13px", color: "#9CA3AF", marginTop: "8px" }}>No subscriptions</p>
+              </div>
+            )}
+          </div>
         </div>
-        {stats.recentTransactions.length > 0 ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-            {stats.recentTransactions.map((tx: any) => (
-              <div
-                key={tx.id}
+
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+            <Zap style={{ height: "16px", width: "16px", color: "#F59E0B" }} />
+            <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>Quick Actions</h3>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+            {[
+              { label: "Add Transaction", icon: Plus, href: "/dashboard/transactions", bg: "#EFF6FF", color: "#2563EB" },
+              { label: "Scan Receipt", icon: Camera, href: "/dashboard/receipts", bg: "#F0FDF4", color: "#16A34A" },
+              { label: "Ask Assistant", icon: MessageCircle, href: "/dashboard/assistant", bg: "#FAF5FF", color: "#7C3AED" },
+              { label: "View Reports", icon: BarChart3, href: "/dashboard/reports", bg: "#FFFBEB", color: "#F59E0B" },
+            ].map((action) => (
+              <Link
+                key={action.label}
+                href={action.href}
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "space-between",
-                  borderRadius: "14px",
-                  padding: "12px 16px",
-                  transition: "background-color 150ms",
+                  gap: "12px",
+                  borderRadius: "16px",
+                  background: "white",
+                  padding: "18px 20px",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                  border: "1px solid #F3F4F6",
+                  textDecoration: "none",
+                  transition: "all 0.2s",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#F9FAFB"
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)"
+                  e.currentTarget.style.transform = "translateY(-1px)"
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "transparent"
+                  e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)"
+                  e.currentTarget.style.transform = "translateY(0)"
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div style={{ display: "flex", height: "40px", width: "40px", alignItems: "center", justifyContent: "center", borderRadius: "12px", background: "#F9FAFB", fontSize: "18px" }}>
-                    {tx.category?.icon || "💰"}
-                  </div>
-                  <div>
-                    <p style={{ fontSize: "14px", fontWeight: 500, color: "#111111" }}>{tx.description}</p>
-                    <p style={{ fontSize: "12px", color: "#9CA3AF" }}>
-                      {tx.category?.name || "Uncategorized"} · {tx.account?.name}
-                    </p>
-                  </div>
+                <div style={{ height: "40px", width: "40px", borderRadius: "12px", background: action.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <action.icon style={{ height: "20px", width: "20px", color: action.color }} />
                 </div>
-                <div style={{ textAlign: "right" }}>
-                  <p
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      color: tx.type === "income" ? "#16A34A" : "#111111",
-                    }}
-                  >
-                    {tx.type === "income" ? "+" : "-"}
-                    {formatCurrency(tx.amount)}
-                  </p>
-                  <p style={{ fontSize: "12px", color: "#9CA3AF" }}>{formatDate(tx.date)}</p>
+                <div>
+                  <span style={{ fontSize: "14px", fontWeight: 500, color: "#111111" }}>{action.label}</span>
                 </div>
-              </div>
+                <ArrowRight style={{ height: "16px", width: "16px", color: "#D1D5DB", marginLeft: "auto" }} />
+              </Link>
             ))}
           </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "64px 0", color: "#D1D5DB" }}>
-            <div style={{ height: "64px", width: "64px", borderRadius: "9999px", background: "#F9FAFB", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "12px" }}>
-              <ArrowLeftRight style={{ height: "24px", width: "24px", color: "#D1D5DB" }} />
-            </div>
-            <p style={{ fontSize: "14px", fontWeight: 500, color: "#9CA3AF" }}>No transactions yet</p>
-            <p style={{ fontSize: "13px", color: "#D1D5DB", marginTop: "4px" }}>Add your first transaction to get started</p>
-          </div>
-        )}
+        </div>
       </div>
-    </div>
+    </>
   )
 }

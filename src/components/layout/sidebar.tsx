@@ -19,22 +19,64 @@ import {
   Upload,
   Bell,
   BarChart3,
+  Brain,
+  CreditCard,
+  TrendingUp,
+  ShoppingCart,
+  FileText,
+  GitBranch,
+  MessageCircle,
+  Clock,
 } from "lucide-react"
 import * as React from "react"
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/accounts", label: "Accounts", icon: Wallet },
-  { href: "/dashboard/transactions", label: "Transactions", icon: ArrowLeftRight },
-  { href: "/dashboard/categories", label: "Categories", icon: Tag },
-  { href: "/dashboard/budgets", label: "Budgets", icon: PiggyBank },
-  { href: "/dashboard/goals", label: "Goals", icon: Target },
-  { href: "/dashboard/recurring", label: "Recurring", icon: Repeat },
-  { href: "/dashboard/calendar", label: "Calendar", icon: Calendar },
-  { href: "/dashboard/imports", label: "Imports", icon: Upload },
-  { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
-  { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
-  { href: "/dashboard/tags", label: "Tags", icon: Tag },
+const navSections = [
+  {
+    title: "Core",
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/dashboard/accounts", label: "Accounts", icon: Wallet },
+      { href: "/dashboard/transactions", label: "Transactions", icon: ArrowLeftRight },
+      { href: "/dashboard/categories", label: "Categories", icon: Tag },
+    ],
+  },
+  {
+    title: "Planning",
+    items: [
+      { href: "/dashboard/budgets", label: "Budgets", icon: PiggyBank },
+      { href: "/dashboard/goals", label: "Goals", icon: Target },
+      { href: "/dashboard/recurring", label: "Recurring", icon: Repeat },
+      { href: "/dashboard/calendar", label: "Calendar", icon: Calendar },
+      { href: "/dashboard/cashflow", label: "Cash Flow", icon: Clock },
+    ],
+  },
+  {
+    title: "Intelligence",
+    items: [
+      { href: "/dashboard/insights", label: "AI Insights", icon: Brain },
+      { href: "/dashboard/forecasting", label: "Forecasting", icon: TrendingUp },
+      { href: "/dashboard/affordability", label: "Simulator", icon: ShoppingCart },
+      { href: "/dashboard/scenarios", label: "Scenarios", icon: GitBranch },
+      { href: "/dashboard/assistant", label: "Assistant", icon: MessageCircle },
+    ],
+  },
+  {
+    title: "Tools",
+    items: [
+      { href: "/dashboard/subscriptions", label: "Subscriptions", icon: CreditCard },
+      { href: "/dashboard/receipts", label: "Receipts", icon: FileText },
+      { href: "/dashboard/imports", label: "Imports", icon: Upload },
+      { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+    ],
+  },
+  {
+    title: "Manage",
+    items: [
+      { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
+      { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
+      { href: "/dashboard/tags", label: "Tags", icon: Tag },
+    ],
+  },
 ]
 
 export function Sidebar() {
@@ -141,51 +183,58 @@ export function Sidebar() {
           </div>
 
           <nav style={{ flex: 1, paddingInline: "12px", paddingBlock: "8px", overflowY: "auto" }}>
-            {navItems.map((item) => {
-              const isActive = pathname === item.href
-              const isHovered = hoveredItem === item.href
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  onMouseEnter={() => setHoveredItem(item.href)}
-                  onMouseLeave={() => setHoveredItem(null)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    borderRadius: "12px",
-                    paddingInline: "12px",
-                    paddingBlock: "10px",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    transition: "all 0.15s",
-                    marginBottom: "2px",
-                    background: isActive
-                      ? "#EFF6FF"
-                      : isHovered
-                      ? "#F9FAFB"
-                      : undefined,
-                    color: isActive
-                      ? "#2563EB"
-                      : isHovered
-                      ? "#111111"
-                      : "#6B7280",
-                    textDecoration: "none",
-                  }}
-                >
-                  <item.icon
-                    style={{
-                      height: "18px",
-                      width: "18px",
-                      color: isActive ? "#2563EB" : "#9CA3AF",
-                    }}
-                  />
-                  {item.label}
-                </Link>
-              )
-            })}
+            {navSections.map((section) => (
+              <div key={section.title} style={{ marginBottom: "8px" }}>
+                <div style={{ paddingInline: "12px", paddingBlock: "6px", fontSize: "11px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  {section.title}
+                </div>
+                {section.items.map((item) => {
+                  const isActive = pathname === item.href
+                  const isHovered = hoveredItem === item.href
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      onMouseEnter={() => setHoveredItem(item.href)}
+                      onMouseLeave={() => setHoveredItem(null)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        borderRadius: "12px",
+                        paddingInline: "12px",
+                        paddingBlock: "8px",
+                        fontSize: "14px",
+                        fontWeight: 500,
+                        transition: "all 0.15s",
+                        marginBottom: "1px",
+                        background: isActive
+                          ? "#EFF6FF"
+                          : isHovered
+                          ? "#F9FAFB"
+                          : undefined,
+                        color: isActive
+                          ? "#2563EB"
+                          : isHovered
+                          ? "#111111"
+                          : "#6B7280",
+                        textDecoration: "none",
+                      }}
+                    >
+                      <item.icon
+                        style={{
+                          height: "16px",
+                          width: "16px",
+                          color: isActive ? "#2563EB" : "#9CA3AF",
+                        }}
+                      />
+                      {item.label}
+                    </Link>
+                  )
+                })}
+              </div>
+            ))}
           </nav>
 
           <div style={{ paddingInline: "12px", paddingBottom: "16px" }}>

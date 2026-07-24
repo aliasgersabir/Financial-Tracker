@@ -29,6 +29,16 @@ model User {
   notifications    Notification[]
   reports          Report[]
   tags             Tag[]
+  receipts         Receipt[]
+  subscriptions    Subscription[]
+  forecasts        Forecast[]
+  aiInsights       AIInsight[]
+  insightHistory   InsightHistory[]
+  healthSnapshots  FinancialHealthSnapshot[]
+  scenarioAnalyses ScenarioAnalysis[]
+  cashFlowProjections CashFlowProjection[]
+  learningRules    LearningCategoryRule[]
+  scenarioPlans    ScenarioPlan[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 }
@@ -63,6 +73,8 @@ model Category {
   budgetItems     BudgetItem[]
   calendarEvents  CalendarEvent[]
   recurringRules  RecurringRule[]
+  subscriptions   Subscription[]
+  learningRules   LearningCategoryRule[]
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
@@ -83,6 +95,8 @@ model Transaction {
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   recurringRuleId String?
   recurringRule   RecurringRule?   @relation(fields: [recurringRuleId], references: [id], onDelete: SetNull)
+  subscriptionId  String?
+  subscription    Subscription?    @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
   tags            TransactionTag[]
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -298,4 +312,210 @@ model TransactionTag {
   tag           Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([transactionId, tagId])
+}
+
+// ============================================================
+// Phase 3 — Receipt OCR
+// ============================================================
+
+model Receipt {
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileName        String
+  fileType        String
+  fileUrl         String?
+  merchantName    String?
+  totalAmount     Float?
+  taxAmount       Float?
+  date            DateTime?
+  rawText         String?
+  status          String           @default("pending")
+  ocrExtraction   OCRExtraction?
+  transactionId   String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model OCRExtraction {
+  id              String   @id @default(cuid())
+  receiptId       String   @unique
+  receipt         Receipt  @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  merchant        String?
+  date            DateTime?
+  subtotal        Float?
+  tax             Float?
+  total           Float?
+  items           String?
+  confidence      Float?
+  rawResponse     String?
+  createdAt       DateTime @default(now())
+}
+
+// ============================================================
+// Phase 3 — Subscription Intelligence
+// ============================================================
+
+model Subscription {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  amount          Float
+  currency        String        @default("USD")
+  frequency       String        @default("monthly")
+  categoryId      String?
+  category        Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  nextRenewal     DateTime?
+  startDate       DateTime      @default(now())
+  endDate         DateTime?
+  isActive        Boolean       @default(true)
+  isTrial         Boolean       @default(false)
+  website         String?
+  notes           String?
+  autoDetected    Boolean       @default(false)
+  paymentMethod   String?
+  color           String        @default("#6B7280")
+  transactions    Transaction[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+// ============================================================
+// Phase 3 — Financial Forecasting
+// ============================================================
+
+model Forecast {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            String
+  period          String
+  startDate       DateTime
+  endDate         DateTime
+  data            String
+  accuracy        Float?
+  generatedAt     DateTime @default(now())
+}
+
+// ============================================================
+// Phase 3 — AI Insights
+// ============================================================
+
+model AIInsight {
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            String
+  title           String
+  explanation     String
+  action          String?
+  category        String?
+  priority        String          @default("medium")
+  confidence      Float?
+  isRead          Boolean         @default(false)
+  isDismissed     Boolean         @default(false)
+  metadata        String?
+  expiresAt       DateTime?
+  createdAt       DateTime        @default(now())
+}
+
+model InsightHistory {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  insightType     String
+  insightTitle    String
+  action          String?
+  createdAt       DateTime @default(now())
+}
+
+// ============================================================
+// Phase 3 — Financial Health Score
+// ============================================================
+
+model FinancialHealthSnapshot {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score           Int
+  savingsRate     Float?
+  budgetDiscipline Float?
+  goalProgress    Float?
+  emergencyFund   Float?
+  spendingConsistency Float?
+  debtRatio       Float?
+  breakdown       String?
+  snapshotDate    DateTime @default(now())
+}
+
+// ============================================================
+// Phase 3 — Scenario Analysis
+// ============================================================
+
+model ScenarioAnalysis {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  assumptions     String
+  results         String?
+  isFavorite      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================================
+// Phase 3 — Cash Flow Projections
+// ============================================================
+
+model CashFlowProjection {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date            DateTime
+  type            String
+  description     String?
+  amount          Float
+  category        String?
+  isRecurring     Boolean  @default(false)
+  isConfirmed     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+}
+
+// ============================================================
+// Phase 3 — Smart Categorization Rules
+// ============================================================
+
+model LearningCategoryRule {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pattern         String
+  categoryId      String
+  category        Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  matchType       String   @default("contains")
+  priority        Int      @default(0)
+  timesApplied    Int      @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================================
+// Phase 3 — Scenario Planner
+// ============================================================
+
+model ScenarioPlan {
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  assumptions     String
+  projections     String?
+  isFavorite      Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 }
