@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState, useRef } from "react"
 import { Upload, X, CheckCircle2, AlertCircle, Clock, Trash2, Download } from "lucide-react"
 import { Modal } from "@/components/ui/modal"
+import { formatCurrency } from "@/lib/utils"
 
 interface ImportJob {
   id: string
@@ -198,9 +199,7 @@ export default function ImportsPage() {
     return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
   }
 
-  const formatCurrency = (n: number) => {
-    return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n)
-  }
+
 
   const getStatusColor = (s: string) => {
     switch (s) {

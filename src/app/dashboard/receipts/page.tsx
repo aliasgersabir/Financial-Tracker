@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react"
 import { useEffect, useState, useRef } from "react"
 import { FileText, Camera, Check, Upload, Eye } from "lucide-react"
 import { Modal } from "@/components/ui/modal"
+import { formatCurrency } from "@/lib/utils"
 
 interface Receipt {
   id: string
@@ -15,9 +16,6 @@ interface Receipt {
   filePath: string
   processedData: string | null
 }
-
-const formatCurrency = (n: number) =>
-  `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
 export default function ReceiptsPage() {
   const { status } = useSession()

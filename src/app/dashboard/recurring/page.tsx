@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { Plus, Play, Pause, Pencil, Trash2, Calendar } from "lucide-react"
 import { Modal } from "@/components/ui/modal"
+import { formatCurrency } from "@/lib/utils"
 
 interface RecurringRule {
   id: string
@@ -202,8 +203,7 @@ export default function RecurringPage() {
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
 
-  const formatCurrency = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n)
+
 
   if (status === "loading" || loading) {
     return (

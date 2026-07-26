@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { Plus, Trash2, ArrowLeft, Target } from "lucide-react"
 import { Modal } from "@/components/ui/modal"
+import { formatCurrency } from "@/lib/utils"
 
 interface GoalContribution {
   id: string
@@ -75,10 +76,6 @@ function ProgressRing({ percentage, color, size = 80 }: { percentage: number; co
       />
     </svg>
   )
-}
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount)
 }
 
 export default function GoalsPage() {

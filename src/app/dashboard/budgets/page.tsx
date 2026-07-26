@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState, useCallback } from "react"
 import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Wallet } from "lucide-react"
 import { Modal } from "@/components/ui/modal"
+import { formatCurrency } from "@/lib/utils"
 
 interface Category {
   id: string
@@ -70,7 +71,7 @@ export default function BudgetsPage() {
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null)
 
   const [categories, setCategories] = useState<Category[]>([])
-  const [createForm, setCreateForm] = useState({ name: "" })
+  const [createForm, setCreateForm] = useState({ name: "", totalAmount: "" })
   const [newItem, setNewItem] = useState({ categoryId: "", amount: "" })
   const [editAmount, setEditAmount] = useState("")
 
@@ -148,11 +149,12 @@ export default function BudgetsPage() {
         name: createForm.name,
         month: selectedMonth,
         year: selectedYear,
+        totalAmount: createForm.totalAmount ? parseFloat(createForm.totalAmount) : 0,
         items: [],
       }),
     })
     setCreateModalOpen(false)
-    setCreateForm({ name: "" })
+    setCreateForm({ name: "", totalAmount: "" })
     fetchData()
   }
 
@@ -200,9 +202,6 @@ export default function BudgetsPage() {
     await fetch(`/api/budgets/${budget.id}`, { method: "DELETE" })
     fetchData()
   }
-
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount)
 
   const getStatusColor = (status: string) => {
     if (status === "exceeded") return "#DC2626"
@@ -617,6 +616,29 @@ export default function BudgetsPage() {
               }}
               placeholder="e.g. Monthly Budget"
               required
+            />
+          </div>
+          <div>
+            <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>
+              Total Budget Amount
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={createForm.totalAmount}
+              onChange={(e) => setCreateForm({ ...createForm, totalAmount: e.target.value })}
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
+              style={{
+                height: "44px", width: "100%", borderRadius: "12px",
+                border: inputFocused ? "1px solid #2563EB" : "1px solid #E5E7EB",
+                background: "white", padding: "0 14px",
+                fontSize: "14px", color: "#111111", outline: "none",
+                transition: "all 150ms ease",
+                boxShadow: inputFocused ? "0 0 0 2px rgba(37,99,235,0.1)" : "none",
+              }}
+              placeholder="0.00"
             />
           </div>
           <div>

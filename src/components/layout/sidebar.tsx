@@ -9,26 +9,25 @@ import {
   ArrowLeftRight,
   Tag,
   LogOut,
-  Sparkles,
   Menu,
   X,
   PiggyBank,
   Target,
   Repeat,
-  Calendar,
   Upload,
-  Bell,
   BarChart3,
-  Brain,
-  CreditCard,
-  TrendingUp,
-  ShoppingCart,
   FileText,
-  GitBranch,
   MessageCircle,
-  Clock,
+  ShoppingCart,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react"
 import * as React from "react"
+
+interface SidebarProps {
+  isOpen: boolean
+  onToggle: () => void
+}
 
 const navSections = [
   {
@@ -46,42 +45,22 @@ const navSections = [
       { href: "/dashboard/budgets", label: "Budgets", icon: PiggyBank },
       { href: "/dashboard/goals", label: "Goals", icon: Target },
       { href: "/dashboard/recurring", label: "Recurring", icon: Repeat },
-      { href: "/dashboard/calendar", label: "Calendar", icon: Calendar },
-      { href: "/dashboard/cashflow", label: "Cash Flow", icon: Clock },
-    ],
-  },
-  {
-    title: "Intelligence",
-    items: [
-      { href: "/dashboard/insights", label: "AI Insights", icon: Brain },
-      { href: "/dashboard/forecasting", label: "Forecasting", icon: TrendingUp },
       { href: "/dashboard/affordability", label: "Simulator", icon: ShoppingCart },
-      { href: "/dashboard/scenarios", label: "Scenarios", icon: GitBranch },
-      { href: "/dashboard/assistant", label: "Assistant", icon: MessageCircle },
     ],
   },
   {
     title: "Tools",
     items: [
-      { href: "/dashboard/subscriptions", label: "Subscriptions", icon: CreditCard },
+      { href: "/dashboard/assistant", label: "Assistant", icon: MessageCircle },
       { href: "/dashboard/receipts", label: "Receipts", icon: FileText },
       { href: "/dashboard/imports", label: "Imports", icon: Upload },
-      { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-    ],
-  },
-  {
-    title: "Manage",
-    items: [
-      { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
       { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
-      { href: "/dashboard/tags", label: "Tags", icon: Tag },
     ],
   },
 ]
 
-export function Sidebar() {
+export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const pathname = usePathname()
-  const [mobileOpen, setMobileOpen] = React.useState(false)
   const [isDesktop, setIsDesktop] = React.useState(true)
 
   const [hoveredItem, setHoveredItem] = React.useState<string | null>(null)
@@ -95,35 +74,9 @@ export function Sidebar() {
     return () => window.removeEventListener("resize", check)
   }, [])
 
-  const sidebarVisible = isDesktop || mobileOpen
-
   return (
     <>
-      {!isDesktop && (
-        <button
-          onClick={() => setMobileOpen(true)}
-          style={{
-            position: "fixed",
-            top: "16px",
-            left: "16px",
-            zIndex: 50,
-            display: "flex",
-            height: "40px",
-            width: "40px",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: "9999px",
-            background: "white",
-            boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-            border: "1px solid #E5E7EB",
-            cursor: "pointer",
-          }}
-        >
-          <Menu style={{ height: "16px", width: "16px", color: "#111111" }} />
-        </button>
-      )}
-
-      {mobileOpen && (
+      {!isDesktop && isOpen && (
         <div
           style={{
             position: "fixed",
@@ -132,7 +85,7 @@ export function Sidebar() {
             background: "rgba(0,0,0,0.2)",
             backdropFilter: "blur(4px)",
           }}
-          onClick={() => setMobileOpen(false)}
+          onClick={onToggle}
         />
       )}
 
@@ -147,39 +100,38 @@ export function Sidebar() {
           background: "white",
           borderRight: "1px solid #F3F4F6",
           transition: "transform 200ms ease-out",
-          transform: sidebarVisible ? "translateX(0)" : "translateX(-100%)",
+          transform: isOpen ? "translateX(0)" : "translateX(-100%)",
         }}
       >
         <div style={{ display: "flex", height: "100%", flexDirection: "column" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingInline: "24px", paddingBlock: "20px" }}>
-            <Link href="/dashboard" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <div style={{ display: "flex", height: "36px", width: "36px", alignItems: "center", justifyContent: "center", borderRadius: "12px", background: "#111111" }}>
-                <Sparkles style={{ height: "16px", width: "16px", color: "white" }} />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingInline: "20px", paddingBlock: "16px" }}>
+            <Link href="/dashboard" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+              <div style={{ display: "flex", height: "34px", width: "34px", alignItems: "center", justifyContent: "center", borderRadius: "10px", background: "#111111" }}>
+                <span style={{ fontSize: "16px", fontWeight: 700, color: "white", letterSpacing: "-0.025em" }}>f</span>
               </div>
               <span style={{ fontSize: "17px", fontWeight: 600, color: "#111111", letterSpacing: "-0.025em" }}>
                 FinOS
               </span>
             </Link>
-            {!isDesktop && (
-              <button
-                onClick={() => setMobileOpen(false)}
-                onMouseEnter={() => setCloseBtnHovered(true)}
-                onMouseLeave={() => setCloseBtnHovered(false)}
-                style={{
-                  display: "flex",
-                  height: "32px",
-                  width: "32px",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: "9999px",
-                  color: "#6B7280",
-                  background: closeBtnHovered ? "#F3F4F6" : undefined,
-                  cursor: "pointer",
-                }}
-              >
-                <X style={{ height: "16px", width: "16px" }} />
-              </button>
-            )}
+            <button
+              onClick={onToggle}
+              onMouseEnter={() => setCloseBtnHovered(true)}
+              onMouseLeave={() => setCloseBtnHovered(false)}
+              style={{
+                display: "flex",
+                height: "32px",
+                width: "32px",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "9999px",
+                color: "#6B7280",
+                background: closeBtnHovered ? "#F3F4F6" : undefined,
+                cursor: "pointer",
+                border: "none",
+              }}
+            >
+              <X style={{ height: "16px", width: "16px" }} />
+            </button>
           </div>
 
           <nav style={{ flex: 1, paddingInline: "12px", paddingBlock: "8px", overflowY: "auto" }}>
@@ -195,7 +147,7 @@ export function Sidebar() {
                     <Link
                       key={item.href}
                       href={item.href}
-                      onClick={() => setMobileOpen(false)}
+                      onClick={onToggle}
                       onMouseEnter={() => setHoveredItem(item.href)}
                       onMouseLeave={() => setHoveredItem(null)}
                       style={{
@@ -266,5 +218,33 @@ export function Sidebar() {
         </div>
       </aside>
     </>
+  )
+}
+
+export function SidebarToggleButton({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
+  const [hovered, setHovered] = React.useState(false)
+
+  return (
+    <button
+      onClick={onToggle}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: "flex",
+        height: "34px",
+        width: "34px",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "10px",
+        border: "1px solid #E5E7EB",
+        background: hovered ? "#F3F4F6" : "white",
+        cursor: "pointer",
+        transition: "all 150ms ease",
+        flexShrink: 0,
+        color: "#6B7280",
+      }}
+    >
+      {isOpen ? <PanelLeftClose style={{ height: "16px", width: "16px" }} /> : <PanelLeftOpen style={{ height: "16px", width: "16px" }} />}
+    </button>
   )
 }

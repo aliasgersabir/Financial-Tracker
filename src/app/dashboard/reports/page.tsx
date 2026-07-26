@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { Plus, Download, ChevronDown, ChevronUp } from "lucide-react"
+import { formatCurrency } from "@/lib/utils"
 
 interface ReportData {
   totalIncome: number
@@ -26,8 +27,6 @@ interface Report {
   createdAt: string
   parsedData?: ReportData
 }
-
-const formatCurrency = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
 export default function ReportsPage() {
   const { status } = useSession()
