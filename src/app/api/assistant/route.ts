@@ -7,6 +7,7 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY || ""
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434"
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5-coder:7b"
 
+
 async function buildFinancialContext(userId: string, now: Date) {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
   const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1)
@@ -321,27 +322,165 @@ async function streamOllama(
 function basicAnalysis(data: any, question: string): string {
   const q = question.toLowerCase()
   const s = data.summary
+  const cur = "₹"
 
-  if (q.includes("save") || q.includes("savings")) {
-    return `Your savings rate is **${s.savingsRate}%** this month.\n\nIncome: **${s.monthlyIncome}**\nExpenses: **${s.monthlyExpenses}**\nNet Savings: **${s.monthlySavings}**\n\n${s.savingsRate >= 20 ? "Great job — you're saving above the recommended 20%!" : `To reach the recommended 20% savings rate, try to reduce expenses by **${Math.round(s.monthlyIncome * 0.2 - s.monthlySavings)}**.`}`
+  const fmt = (n: number) => {
+    if (n >= 10000000) return `${cur}${(n / 10000000).toFixed(2)} Cr`
+    if (n >= 100000) return `${cur}${(n / 100000).toFixed(2)} L`
+    return `${cur}${Math.round(n).toLocaleString("en-IN")}`
   }
 
-  if (q.includes("spent") || q.includes("expense") || q.includes("spending")) {
-    const top3 = data.spendingByCategory.slice(0, 3)
-    return `**This Month's Spending: ${s.monthlyExpenses}**\n\nTop categories:\n${top3.map((c: any) => `- ${c.name}: **${c.amount}**`).join("\n")}\n\nYour biggest expense is **${top3[0]?.name || "N/A"}** at **${top3[0]?.amount || 0}**.`
+  if (q.includes("salary") || q.includes("afford") || q.includes("rent") || q.includes("emi")) {
+    const nums = question.match(/\d[\d,\.]*/g)
+    let rent = 0
+    if (nums && nums.length > 0) {
+      rent = parseInt(nums[0].replace(/,/g, ""))
+      if (q.includes("lakh") || q.includes("lac")) rent *= 100000
+      else if (q.includes("k")) rent *= 1000
+    }
+    if (rent > 0) {
+      const ideal = rent * 3
+      const max = rent * 4
+      let out = `**To afford ${fmt(rent)} rent:**\n\n`
+      out += `- **Ideal salary:** ${fmt(ideal)}/month (${fmt(ideal * 12)}/year)\n`
+      out += `- **Maximum safe:** ${fmt(max)}/month (${fmt(max * 12)}/year)\n`
+      out += `- Rule: Rent should be max 30% of take-home\n\n`
+      out += `**Your situation:**\n`
+      out += `- Balance: ${fmt(s.totalBalance)}\n`
+      out += `- Income: ${fmt(s.monthlyIncome)}/mo\n`
+      out += `- Expenses: ${fmt(s.monthlyExpenses)}/mo\n`
+      if (s.monthlyIncome > 0) {
+        if (rent <= s.monthlyIncome * 0.3)
+          out += `\n✅ At ${fmt(s.monthlyIncome)}/month income, ${fmt(rent)} rent is **affordable** (${Math.round(rent / s.monthlyIncome * 100)}%).`
+        else
+          out += `\n⚠️ At ${fmt(s.monthlyIncome)}/month income, ${fmt(rent)} rent is **${Math.round(rent / s.monthlyIncome * 100)}%** — too high (should be <30%).`
+      }
+      return out
+    }
+    return `**Salary needed for rent:**\n\nRule: Monthly salary should be **3x the rent** (rent = 30% of income).\n\nExamples:\n- ₹10,000 rent → ₹30,000 salary needed\n- ₹25,000 rent → ₹75,000 salary needed\n- ₹50,000 rent → ₹1,50,000 salary needed\n\nAdd a number to your question for a personalized calculation!`
   }
 
-  if (q.includes("goal")) {
-    if (data.goals.length === 0) return "You don't have any savings goals yet. Create one in the Goals section!"
-    return data.goals.map((g: any) => `- **${g.name}**: ${g.saved} of ${g.target} (${g.percentage}%)${g.deadline ? ` — due ${g.deadline}` : ""}`).join("\n\n")
+  if (q.includes("save") || q.includes("saving") || q.includes("invest")) {
+    const savings = s.monthlyIncome - s.monthlyExpenses
+    const topCats = data.spendingByCategory.slice(0, 5)
+    let out = `**Savings Analysis:**\n\n`
+    out += `- Savings: **${fmt(savings)}**/month (${s.savingsRate}%)\n`
+    out += `- Target (20%): **${fmt(s.monthlyIncome * 0.2)}**/month\n`
+    if (savings < s.monthlyIncome * 0.2) {
+      out += `- Gap: **${fmt(s.monthlyIncome * 0.2 - savings)}** short\n\n`
+      out += `**Ways to save more:**\n`
+      topCats.forEach((c: any) => out += `- Cut ${c.name} 10% → save **${fmt(c.amount * 0.1)}**/mo\n`)
+    } else {
+      out += `\n✅ You're above the 20% target! Consider investing the surplus.`
+    }
+    return out
   }
 
-  if (q.includes("subscription")) {
-    if (data.subscriptions.length === 0) return "You have no active subscriptions."
-    return `**Active Subscriptions (${data.subscriptions.length}):**\n\n${data.subscriptions.map((s: any) => `- ${s.name}: **${s.amount}/${s.frequency}**`).join("\n")}\n\nTotal monthly cost: **${s.subscriptionCost}**\nAnnual cost: **${Math.round(s.subscriptionCost * 12)}**`
+  if (q.includes("spent") || q.includes("expense") || q.includes("spend") || q.includes("where") || q.includes("category") || q.includes("most") || q.includes("food") || q.includes("travel") || q.includes("shop")) {
+    const topCats = data.spendingByCategory.slice(0, 8)
+    let out = `**Spending (${fmt(s.monthlyExpenses)} this month):**\n\n`
+    topCats.forEach((c: any, i: number) => {
+      const pct = s.monthlyExpenses > 0 ? Math.round(c.amount / s.monthlyExpenses * 100) : 0
+      out += `${i + 1}. **${c.name}**: ${fmt(c.amount)} (${pct}%)\n`
+      if (c.change !== null) out += `   ${c.change > 0 ? `↑${c.change}%` : `↓${Math.abs(c.change)}%`} vs last month\n`
+    })
+    if (s.monthOverMonthChange !== null) {
+      out += `\n**vs Last Month:** ${s.monthOverMonthChange > 0 ? `↑${s.monthOverMonthChange}%` : `↓${Math.abs(s.monthOverMonthChange)}%`}`
+    }
+    return out
   }
 
-  return `**Financial Summary**\n\nBalance: **${s.totalBalance}**\nIncome: **${s.monthlyIncome}**\nExpenses: **${s.monthlyExpenses}**\nSavings: **${s.monthlySavings}** (${s.savingsRate}%)\nSubscriptions: **${s.subscriptionCost}/mo**\n\nAsk me about spending, savings, goals, subscriptions, or any specific financial question!`
+  if (q.includes("goal") || q.includes("target") || q.includes("reach") || q.includes("dream")) {
+    if (data.goals.length === 0) return "No savings goals yet. Create one in **Goals** to start tracking!\n\nTip: Set specific targets with deadlines."
+    let out = `**Savings Goals:**\n\n`
+    const ms = s.monthlyIncome - s.monthlyExpenses
+    data.goals.forEach((g: any) => {
+      const rem = g.target - g.saved
+      const mo = ms > 0 ? Math.ceil(rem / ms) : "∞"
+      out += `**${g.name}** — ${g.percentage}% complete\n`
+      out += `  ${fmt(g.saved)} / ${fmt(g.target)} (need ${fmt(rem)} more)\n`
+      out += `  ETA: ${mo === "∞" ? "can't reach at current pace" : mo + " months"}\n\n`
+    })
+    return out
+  }
+
+  if (q.includes("budget")) {
+    if (data.budgets.length === 0) return "No budgets set. Create one in **Budgets** to control spending!"
+    let out = `**Budget Status:**\n\n`
+    data.budgets.forEach((b: any) => {
+      out += `**${b.name}**\n`
+      b.items.forEach((i: any) => {
+        const cat = data.spendingByCategory.find((c: any) => c.name === i.category)
+        const spent = cat ? cat.amount : 0
+        const pct = i.budgeted > 0 ? Math.round(spent / i.budgeted * 100) : 0
+        const icon = pct >= 100 ? "🔴" : pct >= 80 ? "🟡" : "🟢"
+        out += `  ${icon} ${i.category}: ${fmt(spent)} / ${fmt(i.budgeted)} (${pct}%)\n`
+      })
+      out += "\n"
+    })
+    return out
+  }
+
+  if (q.includes("subscri") || q.includes("cancel") || q.includes("recurring")) {
+    if (data.subscriptions.length === 0 && data.recurringRules.length === 0) return "No active subscriptions or recurring payments."
+    let out = ""
+    if (data.subscriptions.length > 0) {
+      out += `**Subscriptions (${data.subscriptions.length}):**\n\n`
+      data.subscriptions.forEach((sub: any) => {
+        const mc = sub.frequency === "yearly" ? sub.amount / 12 : sub.amount
+        out += `- **${sub.name}**: ${fmt(mc)}/mo (${sub.frequency})\n`
+      })
+      out += `\nTotal: **${fmt(s.subscriptionCost)}/mo** → **${fmt(s.subscriptionCost * 12)}/year**`
+    }
+    if (data.recurringRules.length > 0) {
+      if (out) out += "\n\n"
+      out += `**Recurring:**\n`
+      data.recurringRules.forEach((r: any) => out += `- ${r.description}: ${fmt(r.amount)} ${r.type} (${r.frequency})\n`)
+    }
+    return out
+  }
+
+  if (q.includes("income") || q.includes("earn")) {
+    let out = `**Income:**\n\n`
+    out += `- This month: **${fmt(s.monthlyIncome)}**\n`
+    out += `- Expenses: **${fmt(s.monthlyExpenses)}**\n`
+    out += `- Net: **${fmt(s.monthlyIncome - s.monthlyExpenses)}**\n`
+    if (s.monthlyIncome > 0)
+      out += `\nKeeping **${s.savingsRate}%** of income. ${s.savingsRate >= 20 ? "Solid!" : "Try to save 20%."}`
+    return out
+  }
+
+  if (q.includes("biggest") || q.includes("largest") || q.includes("expensive")) {
+    if (data.topExpenses.length === 0) return "No expenses this month."
+    let out = `**Top Expenses:**\n\n`
+    data.topExpenses.slice(0, 5).forEach((e: any, i: number) => {
+      out += `${i + 1}. **${e.description}** — ${fmt(e.amount)}\n   ${e.date} • ${e.category}\n`
+    })
+    return out
+  }
+
+  if (q.includes("balance") || q.includes("net worth") || q.includes("account")) {
+    let out = `**Accounts:**\n\n`
+    data.accounts.forEach((a: any) => out += `- **${a.name}** (${a.type}): ${fmt(a.balance)}\n`)
+    out += `\n**Total: ${fmt(s.totalBalance)}**`
+    return out
+  }
+
+  // Default: full overview
+  let out = `**Financial Overview**\n\n`
+  out += `💰 Balance: **${fmt(s.totalBalance)}**\n`
+  out += `📈 Income: **${fmt(s.monthlyIncome)}**/mo\n`
+  out += `📉 Expenses: **${fmt(s.monthlyExpenses)}**/mo\n`
+  out += `💎 Savings: **${fmt(s.monthlyIncome - s.monthlyExpenses)}** (${s.savingsRate}%)\n`
+  if (data.spendingByCategory.length > 0) {
+    out += `\n**Top spending:**\n`
+    data.spendingByCategory.slice(0, 3).forEach((c: any) => out += `- ${c.name}: ${fmt(c.amount)}\n`)
+  }
+  if (data.goals.length > 0) {
+    out += `\n**Goals:** ${data.goals.map((g: any) => `${g.name} ${g.percentage}%`).join(", ")}\n`
+  }
+  out += `\n💬 Ask about: spending, savings, goals, budget, subscriptions, salary, rent, or any question!`
+  return out
 }
 
 export async function POST(request: Request) {
