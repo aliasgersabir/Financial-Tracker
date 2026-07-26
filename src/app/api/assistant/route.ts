@@ -2,178 +2,291 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
-export async function POST(request: Request) {
-  try {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434"
+const MODEL = process.env.OLLAMA_MODEL || "gemma4:e4b"
 
-  const { question } = await request.json()
-  const q = (question || "").toLowerCase()
-  const userId = session.user.id
-  const now = new Date()
+function buildFinancialContext(userId: string, now: Date) {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
   const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1)
   const yearStart = new Date(now.getFullYear(), 0, 1)
 
-  const [transactions, categories, accounts, goals, budgets, subscriptions] = await Promise.all([
+  return Promise.all([
     prisma.transaction.findMany({
       where: { userId, date: { gte: threeMonthsAgo } },
       include: { category: true, account: true },
       orderBy: { date: "desc" },
     }).catch(() => []),
-    prisma.category.findMany({ where: { userId } }).catch(() => []),
     prisma.account.findMany({ where: { userId } }).catch(() => []),
-    prisma.goal.findMany({ where: { userId, status: "active" } }).catch(() => []),
+    prisma.category.findMany({ where: { userId } }).catch(() => []),
+    prisma.goal.findMany({ where: { userId } }).catch(() => []),
     prisma.budget.findMany({
       where: { userId, month: now.getMonth() + 1, year: now.getFullYear() },
       include: { items: { include: { category: true } } },
     }).catch(() => []),
     prisma.subscription.findMany({ where: { userId, isActive: true } }).catch(() => []),
+    prisma.recurringRule.findMany({ where: { userId, isActive: true } }).catch(() => []),
   ])
+}
 
-  let answer = ""
-  let suggestions: string[] = []
-  let data: Record<string, unknown> = {}
-
+function formatFinancialData(
+  transactions: any[],
+  accounts: any[],
+  categories: any[],
+  goals: any[],
+  budgets: any[],
+  subscriptions: any[],
+  recurringRules: any[],
+  now: Date
+) {
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
   const currentMonthTx = transactions.filter(t => t.date >= monthStart)
-  const lastMonthTx = transactions.filter(t => t.date >= lastMonthStart && t.date < monthStart)
-  const yearTx = transactions.filter(t => t.date >= yearStart)
-
-  const currentIncome = currentMonthTx.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0)
-  const currentExpenses = currentMonthTx.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0)
-  const lastMonthExpenses = lastMonthTx.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0)
   const totalBalance = accounts.reduce((s, a) => s + a.balance, 0)
+  const monthlyIncome = currentMonthTx.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0)
+  const monthlyExpenses = currentMonthTx.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0)
 
-  const spendingByCategory: Record<string, { name: string; amount: number; categoryId: string }> = {}
+  const spendingByCategory: Record<string, number> = {}
   currentMonthTx.filter(t => t.type === "expense").forEach(t => {
-    const key = t.categoryId || "uncategorized"
-    if (!spendingByCategory[key]) {
-      spendingByCategory[key] = { name: t.category?.name || "Uncategorized", amount: 0, categoryId: key }
-    }
-    spendingByCategory[key].amount += t.amount
+    const name = t.category?.name || "Uncategorized"
+    spendingByCategory[name] = (spendingByCategory[name] || 0) + t.amount
   })
 
-  const sortedCategories = Object.values(spendingByCategory).sort((a, b) => b.amount - a.amount)
+  const topExpenses = [...currentMonthTx]
+    .filter(t => t.type === "expense")
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 10)
 
-  if (q.includes("save") || q.includes("saving")) {
-    const savingsRate = currentIncome > 0 ? ((currentIncome - currentExpenses) / currentIncome * 100).toFixed(1) : "0"
-    answer = `Your current savings rate is ${savingsRate}%. `
-    if (currentExpenses > 0 && sortedCategories.length > 0) {
-      const topCat = sortedCategories[0]
-      answer += `Your largest expense category is "${topCat.name}" at ${topCat.amount.toFixed(2)}. `
-      const suggestedCut = Math.round(topCat.amount * 0.15)
-      answer += `Reducing this by 15% (${suggestedCut.toFixed(2)}) would increase your savings rate.`
-      suggestions.push(`Reduce ${topCat.name} spending by 15%`)
+  const recentTx = transactions.slice(0, 30).map(t => ({
+    date: t.date.toISOString().split("T")[0],
+    description: t.description,
+    amount: t.amount,
+    type: t.type,
+    category: t.category?.name || "Uncategorized",
+    account: t.account?.name || "Unknown",
+  }))
+
+  return {
+    summary: {
+      totalBalance: totalBalance.toFixed(2),
+      monthlyIncome: monthlyIncome.toFixed(2),
+      monthlyExpenses: monthlyExpenses.toFixed(2),
+      monthlySavings: (monthlyIncome - monthlyExpenses).toFixed(2),
+      savingsRate: monthlyIncome > 0 ? ((monthlyIncome - monthlyExpenses) / monthlyIncome * 100).toFixed(1) + "%" : "0%",
+    },
+    accounts: accounts.map(a => ({ name: a.name, type: a.type, balance: a.balance.toFixed(2) })),
+    spendingByCategory: Object.entries(spendingByCategory)
+      .sort(([, a], [, b]) => b - a)
+      .map(([name, amount]) => ({ name, amount: amount.toFixed(2) })),
+    topExpenses: topExpenses.map(t => ({
+      date: t.date.toISOString().split("T")[0],
+      description: t.description,
+      amount: t.amount.toFixed(2),
+      category: t.category?.name || "Uncategorized",
+    })),
+    recentTransactions: recentTx,
+    goals: goals.map(g => ({
+      name: g.name,
+      target: g.targetAmount.toFixed(2),
+      saved: g.currentSaved.toFixed(2),
+      deadline: g.deadline?.toISOString().split("T")[0] || null,
+      percentage: g.targetAmount > 0 ? ((g.currentSaved / g.targetAmount) * 100).toFixed(0) + "%" : "0%",
+    })),
+    budgets: budgets.map(b => ({
+      name: b.name,
+      month: b.month,
+      year: b.year,
+      totalAmount: b.totalAmount?.toFixed(2) || "0",
+      items: b.items.map((i: any) => ({
+        category: i.category?.name || "Unknown",
+        budgeted: i.amount.toFixed(2),
+      })),
+    })),
+    subscriptions: subscriptions.map(s => ({
+      name: s.name,
+      amount: s.amount.toFixed(2),
+      frequency: s.frequency,
+      category: s.category || "General",
+    })),
+    recurringRules: recurringRules.map(r => ({
+      description: r.description,
+      amount: r.amount.toFixed(2),
+      type: r.type,
+      frequency: r.frequency,
+      nextRunDate: r.nextRunDate.toISOString().split("T")[0],
+    })),
+  }
+}
+
+const SYSTEM_PROMPT = `You are FinOS AI, a personal financial advisor built into the FinOS app. You have access to the user's complete financial data.
+
+Your role:
+- Analyze their spending patterns, income, expenses, savings, goals, budgets, and subscriptions
+- Give specific, actionable advice based on THEIR actual numbers
+- Be conversational but concise — like a knowledgeable financial friend
+- Use the currency from their data (all amounts are already formatted)
+- When suggesting savings, calculate exact numbers from their data
+- Compare their spending across months when relevant
+- Flag any concerning patterns (overspending, missed goals, etc.)
+- You can answer ANY question about their finances — no question is too specific
+- When they ask about a specific category, date, or transaction, search through the data provided
+- Be encouraging but honest — if they're overspending, say so clearly
+
+Rules:
+- Always respond in the same language the user writes in
+- Keep responses focused and helpful, not overly long
+- Use markdown formatting for readability (bold, bullet points, etc.)
+- If you don't have enough data to answer, say so honestly
+- Never make up financial data — only use what's provided
+- You have full context of their recent transactions, accounts, goals, budgets, subscriptions, and recurring rules`
+
+export async function POST(request: Request) {
+  try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    if (currentIncome > 0) {
-      const target20 = currentIncome * 0.2
-      const gap = target20 - (currentIncome - currentExpenses)
-      if (gap > 0) {
-        suggestions.push(`Cut ${gap.toFixed(2)} more in expenses to reach 20% savings rate`)
-      } else {
-        suggestions.push("You're already saving more than 20% — consider investing the surplus")
+
+    const { question, history } = await request.json()
+    if (!question?.trim()) {
+      return NextResponse.json({ error: "Question is required" }, { status: 400 })
+    }
+
+    const userId = session.user.id
+    const now = new Date()
+
+    const [transactions, accounts, categories, goals, budgets, subscriptions, recurringRules] =
+      await buildFinancialContext(userId, now)
+
+    const financialData = formatFinancialData(
+      transactions, accounts, categories, goals, budgets, subscriptions, recurringRules, now
+    )
+
+    const messages = [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: `Here is the user's current financial data:\n\n${JSON.stringify(financialData, null, 2)}` },
+    ]
+
+    if (history && Array.isArray(history)) {
+      for (const msg of history.slice(-10)) {
+        messages.push({ role: msg.role, content: msg.content })
       }
     }
-    data = { savingsRate: parseFloat(savingsRate), monthlyIncome: currentIncome, monthlyExpenses: currentExpenses }
-  } else if (q.includes("increase") || q.includes("why") || q.includes("cause")) {
-    const expDiff = currentExpenses - lastMonthExpenses
-    const pctChange = lastMonthExpenses > 0 ? ((expDiff / lastMonthExpenses) * 100).toFixed(1) : "N/A"
-    answer = `Your expenses ${expDiff >= 0 ? "increased" : "decreased"} by ${Math.abs(expDiff).toFixed(2)} (${pctChange}%) compared to last month. `
-    const lastMonthByCategory: Record<string, number> = {}
-    lastMonthTx.filter(t => t.type === "expense").forEach(t => {
-      const key = t.categoryId || "uncategorized"
-      lastMonthByCategory[key] = (lastMonthByCategory[key] || 0) + t.amount
+
+    messages.push({ role: "user", content: question })
+
+    const ollamaRes = await fetch(`${OLLAMA_URL}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: MODEL,
+        messages,
+        stream: true,
+        options: {
+          temperature: 0.7,
+          top_p: 0.9,
+          num_predict: 2048,
+        },
+      }),
     })
-    const increases: { name: string; diff: number }[] = []
-    sortedCategories.forEach(cat => {
-      const last = lastMonthByCategory[cat.categoryId] || 0
-      if (cat.amount > last) {
-        increases.push({ name: cat.name, diff: cat.amount - last })
-      }
-    })
-    increases.sort((a, b) => b.diff - a.diff)
-    if (increases.length > 0) {
-      answer += `The biggest increases: ${increases.slice(0, 3).map(i => `${i.name} (+${i.diff.toFixed(2)})`).join(", ")}.`
-      increases.slice(0, 3).forEach(i => suggestions.push(`Review ${i.name} spending — increased by ${i.diff.toFixed(2)}`))
-    }
-    data = { currentExpenses, lastMonthExpenses, change: expDiff }
-  } else if (q.includes("subscription") || q.includes("cancel")) {
-    const subTotal = subscriptions.reduce((s, sub) => s + (sub.frequency === "yearly" ? sub.amount / 12 : sub.amount), 0)
-    answer = `You have ${subscriptions.length} active subscriptions totaling ${subTotal.toFixed(2)}/month (${(subTotal * 12).toFixed(2)}/year). `
-    const sorted = [...subscriptions].sort((a, b) => {
-      const aM = a.frequency === "yearly" ? a.amount / 12 : a.amount
-      const bM = b.frequency === "yearly" ? b.amount / 12 : b.amount
-      return bM - aM
-    })
-    answer += `Most expensive: ${sorted.slice(0, 3).map(s => `${s.name} (${s.amount.toFixed(2)}/${s.frequency})`).join(", ")}.`
-    sorted.slice(0, 3).forEach(s => suggestions.push(`Consider if "${s.name}" is still needed — ${(s.frequency === "yearly" ? s.amount / 12 : s.amount).toFixed(2)}/month`))
-    data = { subscriptions: sorted.map(s => ({ name: s.name, amount: s.amount, frequency: s.frequency })), totalMonthly: subTotal }
-  } else if (q.includes("goal") || q.includes("reach")) {
-    if (goals.length === 0) {
-      answer = "You don't have any active savings goals yet. Consider creating one to track your progress."
-      suggestions.push("Create a savings goal to stay motivated")
-    } else {
-      const monthlySavings = currentIncome - currentExpenses
-      answer = `You have ${goals.length} active goals. `
-      goals.forEach(g => {
-        const remaining = g.targetAmount - g.currentSaved
-        const monthsLeft = monthlySavings > 0 ? Math.ceil(remaining / monthlySavings) : Infinity
-        const pct = g.targetAmount > 0 ? ((g.currentSaved / g.targetAmount) * 100).toFixed(0) : "0"
-        answer += `"${g.name}": ${pct}% complete. `
-        if (monthsLeft !== Infinity) {
-          answer += `At your current pace, you'll reach it in ${monthsLeft} months. `
-          if (g.deadline && new Date(g.deadline) < new Date(now.getTime() + monthsLeft * 30 * 86400000)) {
-            answer += `You're behind schedule for the deadline. `
-            suggestions.push(`Increase monthly contribution to "${g.name}" to meet your deadline`)
-          }
-        } else {
-          answer += `With current spending, you can't save for this goal. `
-          suggestions.push(`Reduce expenses to start contributing to "${g.name}"`)
-        }
+
+    if (!ollamaRes.ok) {
+      const errText = await ollamaRes.text().catch(() => "Unknown error")
+      console.error("Ollama error:", ollamaRes.status, errText)
+      return new Response(JSON.stringify({
+        answer: "I couldn't connect to the AI model. Make sure Ollama is running (`ollama serve`).",
+        suggestions: ["Start Ollama: run `ollama serve` in your terminal"],
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
       })
-      data = { goals: goals.map(g => ({ name: g.name, target: g.targetAmount, saved: g.currentSaved })), monthlySavings }
     }
-  } else if (q.includes("reduce") || q.includes("cut") || q.includes("category")) {
-    answer = "Here are your top spending categories with potential for reduction: "
-    sortedCategories.slice(0, 5).forEach(cat => {
-      answer += `${cat.name}: ${cat.amount.toFixed(2)}. `
-      suggestions.push(`Try to reduce "${cat.name}" by 10% (save ${(cat.amount * 0.1).toFixed(2)}/month)`)
-    })
-    data = { categories: sortedCategories.slice(0, 5) }
-  } else if (q.includes("biggest") || q.includes("largest")) {
-    const biggest = [...yearTx].filter(t => t.type === "expense").sort((a, b) => b.amount - a.amount).slice(0, 5)
-    answer = `Your biggest expenses this year: `
-    biggest.forEach((t, i) => {
-      answer += `${i + 1}. ${t.description} — ${t.amount.toFixed(2)} (${t.date.toLocaleDateString()}). `
-    })
-    data = { biggestExpenses: biggest.map(t => ({ description: t.description, amount: t.amount, date: t.date })) }
-  } else {
-    answer = `Here's your financial summary:\n\n`
-    answer += `Total Balance: ${totalBalance.toFixed(2)}\n`
-    answer += `Monthly Income: ${currentIncome.toFixed(2)}\n`
-    answer += `Monthly Expenses: ${currentExpenses.toFixed(2)}\n`
-    answer += `Monthly Savings: ${(currentIncome - currentExpenses).toFixed(2)}\n`
-    answer += `Active Goals: ${goals.length}\n`
-    answer += `Active Subscriptions: ${subscriptions.length}\n\n`
-    suggestions.push("Ask me about your spending patterns, savings, or how to optimize your finances")
-    data = { totalBalance, monthlyIncome: currentIncome, monthlyExpenses: currentExpenses, savings: currentIncome - currentExpenses }
-  }
 
-  const references: { type: string; id: string; name: string }[] = []
-  if (sortedCategories.length > 0) {
-    sortedCategories.slice(0, 3).forEach(c => references.push({ type: "category", id: c.categoryId, name: c.name }))
-  }
-  goals.slice(0, 2).forEach(g => references.push({ type: "goal", id: g.id, name: g.name }))
+    const encoder = new TextEncoder()
+    const decoder = new TextDecoder()
 
-  return NextResponse.json({ answer, data, suggestions, references })
+    const stream = new ReadableStream({
+      async start(controller) {
+        let fullAnswer = ""
+        try {
+          const reader = ollamaRes.body?.getReader()
+          if (!reader) {
+            controller.enqueue(encoder.encode(JSON.stringify({ done: true, answer: "" })))
+            controller.close()
+            return
+          }
+
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+
+            const chunk = decoder.decode(value, { stream: true })
+            const lines = chunk.split("\n").filter(Boolean)
+
+            for (const line of lines) {
+              try {
+                const parsed = JSON.parse(line)
+                if (parsed.message?.content) {
+                  fullAnswer += parsed.message.content
+                  controller.enqueue(encoder.encode(JSON.stringify({
+                    token: parsed.message.content,
+                    done: false,
+                  }) + "\n"))
+                }
+                if (parsed.done) {
+                  const suggestions = generateSuggestions(fullAnswer, financialData)
+                  controller.enqueue(encoder.encode(JSON.stringify({
+                    done: true,
+                    answer: fullAnswer,
+                    suggestions,
+                  }) + "\n"))
+                }
+              } catch {}
+            }
+          }
+        } catch (err) {
+          console.error("Stream error:", err)
+        } finally {
+          controller.close()
+        }
+      },
+    })
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+      },
+    })
   } catch (error) {
     console.error("Assistant API error:", error)
     return NextResponse.json(
-      { answer: "I'm having trouble accessing your financial data right now. Please try again in a moment.", suggestions: [], data: {} },
+      { answer: "Something went wrong. Please try again.", suggestions: [] },
       { status: 200 }
     )
   }
+}
+
+function generateSuggestions(answer: string, data: any): string[] {
+  const suggestions: string[] = []
+  const savingsRate = parseFloat(data.summary.savingsRate)
+  const monthlyExpenses = parseFloat(data.summary.monthlyExpenses)
+  const monthlyIncome = parseFloat(data.summary.monthlyIncome)
+
+  if (savingsRate < 20 && monthlyIncome > 0) {
+    suggestions.push("How can I increase my savings rate to 20%?")
+  }
+  if (data.subscriptions.length > 0) {
+    suggestions.push("Which subscriptions should I cancel?")
+  }
+  if (data.goals.length > 0) {
+    suggestions.push("Am I on track to meet my savings goals?")
+  }
+  if (data.spendingByCategory.length > 0) {
+    suggestions.push(`Tell me more about my ${data.spendingByCategory[0].name} spending`)
+  }
+  if (monthlyExpenses > monthlyIncome) {
+    suggestions.push("Help me create a plan to reduce expenses")
+  }
+
+  return suggestions.slice(0, 3)
 }

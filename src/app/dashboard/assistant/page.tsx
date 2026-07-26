@@ -14,11 +14,13 @@ interface Message {
 }
 
 const QUICK_QUESTIONS = [
-  "How can I save money?",
-  "What caused expenses to increase?",
-  "Which subscriptions can I cancel?",
-  "When will I reach my savings goal?",
-  "Which category should I reduce?",
+  "Analyze my spending habits",
+  "How can I save more money?",
+  "Which subscriptions should I cancel?",
+  "Am I on track with my savings goals?",
+  "Where am I overspending?",
+  "Create a budget plan for me",
+  "What's my financial health score?",
 ]
 
 export default function AssistantPage() {
@@ -61,37 +63,83 @@ export default function AssistantPage() {
       timestamp: new Date(),
     }
 
-    setMessages((prev) => [...prev, userMsg])
+    const assistantId = crypto.randomUUID()
+    const assistantMsg: Message = {
+      id: assistantId,
+      role: "assistant",
+      content: "",
+      timestamp: new Date(),
+    }
+
+    setMessages((prev) => [...prev, userMsg, assistantMsg])
     setInput("")
     setSending(true)
 
     try {
+      const history = messages.map(m => ({ role: m.role, content: m.content }))
+
       const res = await fetch("/api/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: question.trim() }),
+        body: JSON.stringify({ question: question.trim(), history }),
       })
-      const data = await res.json()
 
-      const assistantMsg: Message = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: data.answer || "I couldn't generate a response. Please try again.",
-        suggestions: data.suggestions || [],
-        data: data.data || {},
-        timestamp: new Date(),
+      if (!res.ok || !res.body) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? { ...m, content: "Failed to get response. Is Ollama running?" }
+              : m
+          )
+        )
+        return
       }
 
-      setMessages((prev) => [...prev, assistantMsg])
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let fullAnswer = ""
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        const lines = chunk.split("\n").filter(Boolean)
+
+        for (const line of lines) {
+          try {
+            const parsed = JSON.parse(line)
+            if (parsed.token) {
+              fullAnswer += parsed.token
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantId
+                    ? { ...m, content: fullAnswer }
+                    : m
+                )
+              )
+            }
+            if (parsed.done && parsed.suggestions) {
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantId
+                    ? { ...m, suggestions: parsed.suggestions }
+                    : m
+                )
+              )
+            }
+          } catch {}
+        }
+      }
     } catch (err) {
       console.error("Assistant error:", err)
-      const errorMsg: Message = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: "Sorry, I encountered an error. Please try again.",
-        timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, errorMsg])
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? { ...m, content: "Sorry, an error occurred. Make sure Ollama is running (`ollama serve`)." }
+            : m
+        )
+      )
     } finally {
       setSending(false)
     }
