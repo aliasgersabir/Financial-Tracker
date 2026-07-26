@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react"
 import { useEffect, useState, useRef } from "react"
-import { MessageCircle, Send, Bot, User, Lightbulb } from "lucide-react"
+import { MessageCircle, Send, Bot, User, Lightbulb, AlertCircle } from "lucide-react"
 
 interface Message {
   id: string
@@ -88,7 +88,7 @@ export default function AssistantPage() {
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantId
-              ? { ...m, content: "Failed to get response. Is Ollama running?" }
+              ? { ...m, content: "Failed to connect to AI. Please try again." }
               : m
           )
         )
@@ -135,9 +135,9 @@ export default function AssistantPage() {
       console.error("Assistant error:", err)
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === assistantId
-            ? { ...m, content: "Sorry, an error occurred. Make sure Ollama is running (`ollama serve`)." }
-            : m
+            m.id === assistantId
+              ? { ...m, content: "Sorry, an error occurred. Please try again." }
+              : m
         )
       )
     } finally {
