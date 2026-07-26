@@ -47,6 +47,14 @@ export default function CashFlowPage() {
     isRecurring: false,
   })
   const [submitting, setSubmitting] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -153,10 +161,10 @@ export default function CashFlowPage() {
         input:focus { border-color: #2563EB !important; box-shadow: 0 0 0 2px rgba(37,99,235,0.1); outline: none; }
         select:focus { border-color: #2563EB !important; box-shadow: 0 0 0 2px rgba(37,99,235,0.1); outline: none; }
       `}</style>
-      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "12px" : "24px" }}>
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", gap: isMobile ? "12px" : "0" }}>
           <div>
-            <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em", margin: 0 }}>
+            <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em", margin: 0 }}>
               Cash Flow Timeline
             </h1>
             <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>
@@ -193,14 +201,14 @@ export default function CashFlowPage() {
         </div>
 
         {summaryCards.length > 0 && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: isMobile ? "12px" : "16px" }}>
             {summaryCards.map((card) => (
               <div
                 key={card.label}
                 style={{
                   borderRadius: "20px",
                   background: "white",
-                  padding: "20px",
+                  padding: isMobile ? "16px" : "20px",
                   boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
                   display: "flex",
                   alignItems: "center",
@@ -235,7 +243,7 @@ export default function CashFlowPage() {
           <div
             style={{
               borderRadius: "16px",
-              padding: "16px 20px",
+                  padding: isMobile ? "12px" : "16px 20px",
               background: summary.projectedBalance >= summary.currentBalance ? "#F0FDF4" : "#FEF2F2",
               border: `1px solid ${summary.projectedBalance >= summary.currentBalance ? "#BBF7D0" : "#FECACA"}`,
               display: "flex",
@@ -256,11 +264,11 @@ export default function CashFlowPage() {
         )}
 
         {projections.length > 0 ? (
-          <div style={{ position: "relative", paddingLeft: "24px" }}>
+          <div style={{ position: "relative", paddingLeft: isMobile ? "16px" : "24px" }}>
             <div
               style={{
                 position: "absolute",
-                left: "11px",
+                left: isMobile ? "6px" : "11px",
                 top: "0",
                 bottom: "0",
                 width: "2px",
@@ -275,15 +283,15 @@ export default function CashFlowPage() {
                     key={`${p.source}-${p.date}-${i}`}
                     style={{
                       position: "relative",
-                      padding: "20px 0 20px 24px",
+              padding: isMobile ? "12px 0 12px 16px" : "20px 0 20px 24px",
                       animation: "fadeIn 0.3s ease",
                     }}
                   >
                     <div
                       style={{
                         position: "absolute",
-                        left: "-13px",
-                        top: "24px",
+                        left: isMobile ? "-6px" : "-13px",
+                        top: isMobile ? "16px" : "24px",
                         height: "12px",
                         width: "12px",
                         borderRadius: "9999px",
@@ -297,7 +305,7 @@ export default function CashFlowPage() {
                         borderRadius: "16px",
                         background: "white",
                         boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-                        padding: "16px 20px",
+                        padding: isMobile ? "12px 16px" : "16px 20px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
@@ -310,7 +318,9 @@ export default function CashFlowPage() {
                         e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)"
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: "16px", minWidth: 0, flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center",                       flexDirection: isMobile ? "column" : "row",
+                      gap: isMobile ? "8px" : "16px",
+                      minWidth: 0, flex: 1 }}>
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: "60px" }}>
                           <span style={{ fontSize: "11px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>
                             {new Date(p.date).toLocaleDateString("en-US", { month: "short" })}
@@ -454,7 +464,7 @@ export default function CashFlowPage() {
                   <X style={{ height: "16px", width: "16px", color: "#6B7280" }} />
                 </button>
               </div>
-              <form onSubmit={handleSubmit} style={{ padding: "20px 24px 24px 24px", display: "flex", flexDirection: "column", gap: "16px" }}>
+              <form onSubmit={handleSubmit} style={{ padding: isMobile ? "12px 24px" : "20px 24px 24px 24px", display: "flex", flexDirection: "column", gap: "16px" }}>
                 <div>
                   <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Type</label>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>

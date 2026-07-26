@@ -97,6 +97,14 @@ export default function CalendarPage() {
   const [hoveredType, setHoveredType] = useState<string | null>(null)
   const [hoveredRecurrence, setHoveredRecurrence] = useState<string | null>(null)
   const [inputFocused, setInputFocused] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -297,12 +305,12 @@ export default function CalendarPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "12px" : "24px" }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", gap: isMobile ? "12px" : "0" }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Financial Calendar</h1>
+          <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Financial Calendar</h1>
           <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>Track bills, income, and financial deadlines</p>
         </div>
         <button
@@ -314,6 +322,7 @@ export default function CalendarPage() {
           style={{
             display: "inline-flex",
             alignItems: "center",
+            justifyContent: isMobile ? "center" : "flex-start",
             gap: "8px",
             borderRadius: "9999px",
             background: addBtnHovered ? "#1D4ED8" : "#2563EB",
@@ -332,7 +341,7 @@ export default function CalendarPage() {
       </div>
 
       {/* Month Navigation */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "24px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: isMobile ? "16px" : "24px" }}>
         <button
           onClick={handlePrevMonth}
           onMouseEnter={() => setPrevHovered(true)}
@@ -352,7 +361,7 @@ export default function CalendarPage() {
         >
           <ChevronLeft style={{ width: "18px", height: "18px", color: "#111111" }} />
         </button>
-        <h2 style={{ fontSize: "18px", fontWeight: 600, color: "#111111", minWidth: "180px", textAlign: "center" }}>
+        <h2 style={{ fontSize: isMobile ? "16px" : "18px", fontWeight: 600, color: "#111111", minWidth: isMobile ? "140px" : "180px", textAlign: "center" }}>
           {formatMonth(currentMonth)}
         </h2>
         <button
@@ -377,12 +386,12 @@ export default function CalendarPage() {
       </div>
 
       {/* Calendar Grid */}
-      <div style={{ background: "white", borderRadius: "20px", padding: "20px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", border: "1px solid #F3F4F6" }}>
+      <div style={{ background: "white", borderRadius: "20px", padding: isMobile ? "12px" : "20px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", border: "1px solid #F3F4F6" }}>
         {/* Weekday Headers */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "2px", marginBottom: "8px" }}>
           {WEEKDAYS.map((day) => (
-            <div key={day} style={{ textAlign: "center", fontSize: "12px", fontWeight: 600, color: "#9CA3AF", padding: "8px 0", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              {day}
+            <div key={day} style={{ textAlign: "center", fontSize: "12px", fontWeight: 600, color: "#9CA3AF", padding: isMobile ? "4px 0" : "8px 0", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              {isMobile ? day.charAt(0) : day}
             </div>
           ))}
         </div>
@@ -404,8 +413,8 @@ export default function CalendarPage() {
                 style={{
                   position: "relative",
                   borderRadius: "12px",
-                  padding: "6px",
-                  minHeight: "60px",
+                  padding: isMobile ? "4px" : "6px",
+                  minHeight: isMobile ? "40px" : "60px",
                   cursor: "pointer",
                   background: isSelected ? "#EFF6FF" : isHovered ? "#F9FAFB" : "transparent",
                   border: isToday ? "2px solid #2563EB" : "2px solid transparent",
@@ -416,10 +425,10 @@ export default function CalendarPage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  width: "26px",
-                  height: "26px",
+                  width: isMobile ? "22px" : "26px",
+                  height: isMobile ? "22px" : "26px",
                   borderRadius: "9999px",
-                  fontSize: "13px",
+                  fontSize: isMobile ? "11px" : "13px",
                   fontWeight: 500,
                   color: !cell.isCurrentMonth ? "#D1D5DB" : isToday ? "#2563EB" : "#111111",
                   background: isToday && !isSelected ? "#2563EB" : "transparent",
@@ -428,7 +437,7 @@ export default function CalendarPage() {
                 }}>
                   {cell.day}
                 </span>
-                {dayEvents.length > 0 && (
+                {!isMobile && dayEvents.length > 0 && (
                   <div style={{ display: "flex", gap: "3px", flexWrap: "wrap", justifyContent: "center" }}>
                     {dayEvents.slice(0, 4).map((ev) => (
                       <div
@@ -454,8 +463,8 @@ export default function CalendarPage() {
       </div>
 
       {/* Selected Day Events */}
-      <div style={{ background: "white", borderRadius: "20px", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", border: "1px solid #F3F4F6" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+      <div style={{ background: "white", borderRadius: "20px", padding: isMobile ? "16px" : "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", border: "1px solid #F3F4F6" }}>
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", marginBottom: "16px", gap: isMobile ? "12px" : "0" }}>
           <div>
             <h3 style={{ fontSize: "16px", fontWeight: 600, color: "#111111" }}>
               {new Date(selectedDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
@@ -473,6 +482,7 @@ export default function CalendarPage() {
             style={{
               display: "inline-flex",
               alignItems: "center",
+              justifyContent: "center",
               gap: "6px",
               borderRadius: "9999px",
               background: addBtnHovered ? "#1D4ED8" : "#2563EB",
@@ -508,7 +518,7 @@ export default function CalendarPage() {
                   display: "flex",
                   alignItems: "center",
                   gap: "12px",
-                  padding: "12px 16px",
+                  padding: isMobile ? "10px 12px" : "12px 16px",
                   borderRadius: "12px",
                   background: hoveredEvent === ev.id ? "#F9FAFB" : "white",
                   border: "1px solid #F3F4F6",
@@ -530,7 +540,7 @@ export default function CalendarPage() {
                   <div style={{ width: "8px", height: "8px", borderRadius: "9999px", backgroundColor: TYPE_COLORS[ev.type] || "#6B7280" }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                     <span style={{
                       fontSize: "14px",
                       fontWeight: 500,
@@ -539,16 +549,18 @@ export default function CalendarPage() {
                     }}>
                       {ev.title}
                     </span>
-                    <span style={{
-                      fontSize: "11px",
-                      fontWeight: 500,
-                      padding: "2px 8px",
-                      borderRadius: "9999px",
-                      background: TYPE_BG[ev.type],
-                      color: TYPE_COLORS[ev.type],
-                    }}>
-                      {ev.type.replace("_", " ")}
-                    </span>
+                    {!isMobile && (
+                      <span style={{
+                        fontSize: "11px",
+                        fontWeight: 500,
+                        padding: "2px 8px",
+                        borderRadius: "9999px",
+                        background: TYPE_BG[ev.type],
+                        color: TYPE_COLORS[ev.type],
+                      }}>
+                        {ev.type.replace("_", " ")}
+                      </span>
+                    )}
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "2px" }}>
                     {ev.amount != null && (
@@ -686,7 +698,7 @@ export default function CalendarPage() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "12px" }}>
             <div>
               <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Date</label>
               <input
@@ -708,7 +720,7 @@ export default function CalendarPage() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "12px" }}>
             <div>
               <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Recurrence</label>
               <select
@@ -735,7 +747,7 @@ export default function CalendarPage() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "12px" }}>
             <div>
               <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Account</label>
               <select

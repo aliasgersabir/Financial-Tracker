@@ -27,8 +27,16 @@ export default function AssistantPage() {
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640)
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -120,12 +128,12 @@ export default function AssistantPage() {
         input::placeholder { color: #9CA3AF; }
         input:focus { outline: none; }
       `}</style>
-      <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 128px)", gap: "0" }}>
-        <div style={{ marginBottom: "24px" }}>
-          <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em", margin: 0 }}>
+      <div style={{ display: "flex", flexDirection: "column", height: isMobile ? "calc(100vh - 180px)" : "calc(100vh - 128px)", gap: "0", padding: isMobile ? "0 8px" : "0" }}>
+        <div style={{ marginBottom: isMobile ? "16px" : "24px" }}>
+          <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em", margin: 0 }}>
             Financial Assistant
           </h1>
-          <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>
+          <p style={{ fontSize: isMobile ? "13px" : "15px", color: "#6B7280", marginTop: "2px" }}>
             Ask anything about your finances
           </p>
         </div>
@@ -135,7 +143,7 @@ export default function AssistantPage() {
             flex: 1,
             display: "flex",
             flexDirection: "column",
-            borderRadius: "20px",
+            borderRadius: isMobile ? "14px" : "20px",
             background: "white",
             boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
             overflow: "hidden",
@@ -145,7 +153,7 @@ export default function AssistantPage() {
             style={{
               flex: 1,
               overflowY: "auto",
-              padding: "24px",
+              padding: isMobile ? "16px" : "24px",
               display: "flex",
               flexDirection: "column",
               gap: "16px",
@@ -159,14 +167,14 @@ export default function AssistantPage() {
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "16px",
-                  padding: "48px 24px",
+                  gap: isMobile ? "12px" : "16px",
+                  padding: isMobile ? "24px 12px" : "48px 24px",
                 }}
               >
                 <div
                   style={{
-                    height: "72px",
-                    width: "72px",
+                    height: isMobile ? "56px" : "72px",
+                    width: isMobile ? "56px" : "72px",
                     borderRadius: "9999px",
                     background: "#EFF6FF",
                     display: "flex",
@@ -174,13 +182,13 @@ export default function AssistantPage() {
                     justifyContent: "center",
                   }}
                 >
-                  <MessageCircle style={{ height: "32px", width: "32px", color: "#2563EB" }} />
+                  <MessageCircle style={{ height: isMobile ? "24px" : "32px", width: isMobile ? "24px" : "32px", color: "#2563EB" }} />
                 </div>
                 <div style={{ textAlign: "center" }}>
-                  <p style={{ fontSize: "18px", fontWeight: 600, color: "#111111", margin: 0 }}>
+                  <p style={{ fontSize: isMobile ? "16px" : "18px", fontWeight: 600, color: "#111111", margin: 0 }}>
                     How can I help you today?
                   </p>
-                  <p style={{ fontSize: "14px", color: "#9CA3AF", marginTop: "8px", maxWidth: "400px" }}>
+                  <p style={{ fontSize: isMobile ? "13px" : "14px", color: "#9CA3AF", marginTop: "8px", maxWidth: "400px" }}>
                     Ask me about your spending patterns, savings goals, budgets, or anything else related to your finances.
                   </p>
                 </div>
@@ -191,15 +199,15 @@ export default function AssistantPage() {
                   key={msg.id}
                   style={{
                     display: "flex",
-                    gap: "12px",
+                    gap: isMobile ? "8px" : "12px",
                     animation: "fadeIn 0.3s ease",
                     alignItems: "flex-start",
                   }}
                 >
                   <div
                     style={{
-                      height: "32px",
-                      width: "32px",
+                      height: isMobile ? "28px" : "32px",
+                      width: isMobile ? "28px" : "32px",
                       borderRadius: "9999px",
                       background: msg.role === "user" ? "#111111" : "#EFF6FF",
                       display: "flex",
@@ -209,15 +217,15 @@ export default function AssistantPage() {
                     }}
                   >
                     {msg.role === "user" ? (
-                      <User style={{ height: "16px", width: "16px", color: "white" }} />
+                      <User style={{ height: isMobile ? "14px" : "16px", width: isMobile ? "14px" : "16px", color: "white" }} />
                     ) : (
-                      <Bot style={{ height: "16px", width: "16px", color: "#2563EB" }} />
+                      <Bot style={{ height: isMobile ? "14px" : "16px", width: isMobile ? "14px" : "16px", color: "#2563EB" }} />
                     )}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       style={{
-                        fontSize: "14px",
+                        fontSize: isMobile ? "13px" : "14px",
                         lineHeight: "1.6",
                         color: "#111111",
                         whiteSpace: "pre-wrap",
@@ -229,7 +237,7 @@ export default function AssistantPage() {
                       <div
                         style={{
                           marginTop: "12px",
-                          padding: "12px 16px",
+                          padding: isMobile ? "10px 12px" : "12px 16px",
                           borderRadius: "12px",
                           background: "#F9FAFB",
                           border: "1px solid #F3F4F6",
@@ -262,7 +270,7 @@ export default function AssistantPage() {
                           <div
                             key={i}
                             style={{
-                              padding: "10px 14px",
+                              padding: isMobile ? "8px 10px" : "10px 14px",
                               borderRadius: "10px",
                               background: "#FFFBEB",
                               border: "1px solid #FEF3C7",
@@ -282,11 +290,11 @@ export default function AssistantPage() {
             )}
 
             {sending && (
-              <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+              <div style={{ display: "flex", gap: isMobile ? "8px" : "12px", alignItems: "flex-start" }}>
                 <div
                   style={{
-                    height: "32px",
-                    width: "32px",
+                    height: isMobile ? "28px" : "32px",
+                    width: isMobile ? "28px" : "32px",
                     borderRadius: "9999px",
                     background: "#EFF6FF",
                     display: "flex",
@@ -295,9 +303,9 @@ export default function AssistantPage() {
                     flexShrink: 0,
                   }}
                 >
-                  <Bot style={{ height: "16px", width: "16px", color: "#2563EB" }} />
+                  <Bot style={{ height: isMobile ? "14px" : "16px", width: isMobile ? "14px" : "16px", color: "#2563EB" }} />
                 </div>
-                <div style={{ display: "flex", gap: "4px", padding: "12px 16px", background: "#F9FAFB", borderRadius: "12px" }}>
+                <div style={{ display: "flex", gap: "4px", padding: isMobile ? "10px 12px" : "12px 16px", background: "#F9FAFB", borderRadius: "12px" }}>
                   <div style={{ width: "6px", height: "6px", borderRadius: "9999px", background: "#9CA3AF", animation: "fadeIn 0.6s ease infinite" }} />
                   <div style={{ width: "6px", height: "6px", borderRadius: "9999px", background: "#9CA3AF", animation: "fadeIn 0.6s ease 0.2s infinite" }} />
                   <div style={{ width: "6px", height: "6px", borderRadius: "9999px", background: "#9CA3AF", animation: "fadeIn 0.6s ease 0.4s infinite" }} />
@@ -308,9 +316,9 @@ export default function AssistantPage() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div style={{ borderTop: "1px solid #F3F4F6", padding: "16px 24px" }}>
+          <div style={{ borderTop: "1px solid #F3F4F6", padding: isMobile ? "12px" : "16px 24px" }}>
             {messages.length === 0 && (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "16px" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: isMobile ? "6px" : "8px", marginBottom: isMobile ? "12px" : "16px" }}>
                 {QUICK_QUESTIONS.map((q) => (
                   <button
                     key={q}
@@ -319,11 +327,11 @@ export default function AssistantPage() {
                       display: "inline-flex",
                       alignItems: "center",
                       gap: "6px",
-                      padding: "8px 14px",
+                      padding: isMobile ? "6px 10px" : "8px 14px",
                       borderRadius: "9999px",
                       border: "1px solid #E5E7EB",
                       background: "white",
-                      fontSize: "13px",
+                      fontSize: isMobile ? "12px" : "13px",
                       color: "#6B7280",
                       cursor: "pointer",
                       transition: "all 0.15s",
@@ -346,7 +354,7 @@ export default function AssistantPage() {
                 ))}
               </div>
             )}
-            <form onSubmit={handleSubmit} style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <form onSubmit={handleSubmit} style={{ display: "flex", gap: isMobile ? "8px" : "12px", alignItems: "center" }}>
               <input
                 ref={inputRef}
                 type="text"
@@ -356,12 +364,12 @@ export default function AssistantPage() {
                 disabled={sending}
                 style={{
                   flex: 1,
-                  height: "48px",
-                  borderRadius: "14px",
+                  height: isMobile ? "44px" : "48px",
+                  borderRadius: isMobile ? "10px" : "14px",
                   border: "1px solid #E5E7EB",
                   background: "#F9FAFB",
-                  padding: "0 20px",
-                  fontSize: "14px",
+                  padding: isMobile ? "0 14px" : "0 20px",
+                  fontSize: isMobile ? "13px" : "14px",
                   color: "#111111",
                   transition: "all 0.15s",
                   boxSizing: "border-box" as const,
@@ -379,9 +387,9 @@ export default function AssistantPage() {
                 type="submit"
                 disabled={!input.trim() || sending}
                 style={{
-                  height: "48px",
-                  width: "48px",
-                  borderRadius: "14px",
+                  height: isMobile ? "44px" : "48px",
+                  width: isMobile ? "44px" : "48px",
+                  borderRadius: isMobile ? "10px" : "14px",
                   border: "none",
                   background: input.trim() && !sending ? "#2563EB" : "#E5E7EB",
                   color: input.trim() && !sending ? "white" : "#9CA3AF",

@@ -117,6 +117,14 @@ export default function GoalsPage() {
   const [inputFocused, setInputFocused] = useState(false)
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null)
   const [selectedColor, setSelectedColor] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -242,7 +250,7 @@ export default function GoalsPage() {
 
   if (selectedGoal) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "16px" : "24px" }}>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -260,10 +268,10 @@ export default function GoalsPage() {
             <ArrowLeft style={{ width: "16px", height: "16px", color: "#111111" }} />
           </button>
           <div style={{ flex: 1 }}>
-            <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>
+            <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>
               {selectedGoal.icon} {selectedGoal.name}
             </h1>
-            <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>
+            <p style={{ fontSize: isMobile ? "13px" : "15px", color: "#6B7280", marginTop: "2px" }}>
               {selectedGoal.status === "active" ? "Active goal" : selectedGoal.status === "completed" ? "Completed" : "Paused"}
             </p>
           </div>
@@ -282,7 +290,7 @@ export default function GoalsPage() {
           </button>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: isMobile ? "8px" : "12px" }}>
           {selectedGoal.status === "active" && (
             <>
               <button
@@ -293,7 +301,7 @@ export default function GoalsPage() {
                   display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
                   borderRadius: "9999px", padding: "10px 20px",
                   background: contributeBtnHovered === "main" ? "#1D4ED8" : "#2563EB",
-                  color: "white", fontSize: "14px", fontWeight: 500,
+                  color: "white", fontSize: isMobile ? "13px" : "14px", fontWeight: 500,
                   transition: "all 150ms ease", cursor: "pointer",
                 }}
               >
@@ -305,7 +313,7 @@ export default function GoalsPage() {
                 style={{
                   borderRadius: "9999px", padding: "10px 20px",
                   background: "white", border: "1px solid #E5E7EB",
-                  fontSize: "14px", fontWeight: 500, color: "#6B7280",
+                  fontSize: isMobile ? "13px" : "14px", fontWeight: 500, color: "#6B7280",
                   cursor: "pointer", transition: "all 150ms ease",
                 }}
               >
@@ -316,7 +324,7 @@ export default function GoalsPage() {
                 style={{
                   borderRadius: "9999px", padding: "10px 20px",
                   background: "#F0FDF4", border: "1px solid #BBF7D0",
-                  fontSize: "14px", fontWeight: 500, color: "#16A34A",
+                  fontSize: isMobile ? "13px" : "14px", fontWeight: 500, color: "#16A34A",
                   cursor: "pointer", transition: "all 150ms ease",
                 }}
               >
@@ -334,7 +342,7 @@ export default function GoalsPage() {
                   display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
                   borderRadius: "9999px", padding: "10px 20px",
                   background: contributeBtnHovered === "resume" ? "#1D4ED8" : "#2563EB",
-                  color: "white", fontSize: "14px", fontWeight: 500,
+                  color: "white", fontSize: isMobile ? "13px" : "14px", fontWeight: 500,
                   transition: "all 150ms ease", cursor: "pointer",
                 }}
               >
@@ -345,7 +353,7 @@ export default function GoalsPage() {
                 style={{
                   borderRadius: "9999px", padding: "10px 20px",
                   background: "#F0FDF4", border: "1px solid #BBF7D0",
-                  fontSize: "14px", fontWeight: 500, color: "#16A34A",
+                  fontSize: isMobile ? "13px" : "14px", fontWeight: 500, color: "#16A34A",
                   cursor: "pointer", transition: "all 150ms ease",
                 }}
               >
@@ -362,7 +370,7 @@ export default function GoalsPage() {
                 display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
                 borderRadius: "9999px", padding: "10px 20px",
                 background: contributeBtnHovered === "reopen" ? "#1D4ED8" : "#2563EB",
-                color: "white", fontSize: "14px", fontWeight: 500,
+                color: "white", fontSize: isMobile ? "13px" : "14px", fontWeight: 500,
                 transition: "all 150ms ease", cursor: "pointer",
               }}
             >
@@ -371,16 +379,18 @@ export default function GoalsPage() {
           )}
         </div>
 
-        <div style={{ background: "white", borderRadius: "20px", padding: "24px", border: "1px solid #E5E7EB", display: "flex", alignItems: "center", gap: "24px" }}>
-          <ProgressRing
-            percentage={selectedGoal.targetAmount > 0 ? Math.min((selectedGoal.currentSaved / selectedGoal.targetAmount) * 100, 100) : 0}
-            color={selectedGoal.color}
-            size={100}
-          />
+        <div style={{ background: "white", borderRadius: "20px", padding: isMobile ? "16px" : "24px", border: "1px solid #E5E7EB", display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", gap: isMobile ? "16px" : "24px" }}>
+          <div style={{ display: "flex", justifyContent: isMobile ? "center" : "flex-start" }}>
+            <ProgressRing
+              percentage={selectedGoal.targetAmount > 0 ? Math.min((selectedGoal.currentSaved / selectedGoal.targetAmount) * 100, 100) : 0}
+              color={selectedGoal.color}
+              size={isMobile ? 80 : 100}
+            />
+          </div>
           <div style={{ flex: 1 }}>
-            <p style={{ fontSize: "28px", fontWeight: 700, color: "#111111" }}>{formatCurrency(selectedGoal.currentSaved)}</p>
+            <p style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111" }}>{formatCurrency(selectedGoal.currentSaved)}</p>
             <p style={{ fontSize: "14px", color: "#6B7280", marginTop: "2px" }}>of {formatCurrency(selectedGoal.targetAmount)} target</p>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "8px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "8px", flexWrap: "wrap" }}>
               <span style={{ fontSize: "13px", fontWeight: 600, color: selectedGoal.color }}>
                 {selectedGoal.targetAmount > 0 ? Math.round((selectedGoal.currentSaved / selectedGoal.targetAmount) * 100) : 0}%
               </span>
@@ -408,11 +418,11 @@ export default function GoalsPage() {
                   key={c.id}
                   style={{
                     display: "flex", alignItems: "center", justifyContent: "space-between",
-                    padding: "14px 16px", background: "white",
+                    padding: isMobile ? "12px" : "14px 16px", background: "white",
                   }}
                 >
                   <div>
-                    <p style={{ fontSize: "14px", fontWeight: 600, color: "#111111" }}>{formatCurrency(c.amount)}</p>
+                    <p style={{ fontSize: isMobile ? "13px" : "14px", fontWeight: 600, color: "#111111" }}>{formatCurrency(c.amount)}</p>
                     <p style={{ fontSize: "12px", color: "#9CA3AF", marginTop: "2px" }}>
                       {new Date(c.date).toLocaleDateString()}
                       {c.notes && ` · ${c.notes}`}
@@ -455,7 +465,7 @@ export default function GoalsPage() {
                     onMouseEnter={() => setQuickAmountHovered(String(amt))}
                     onMouseLeave={() => setQuickAmountHovered(null)}
                     style={{
-                      flex: 1, padding: "10px", borderRadius: "12px", fontSize: "14px", fontWeight: 500,
+                      flex: 1, padding: "10px", borderRadius: "12px", fontSize: isMobile ? "13px" : "14px", fontWeight: 500,
                       border: contributionForm.amount === String(amt) ? "1px solid #2563EB" : "1px solid #E5E7EB",
                       background: contributionForm.amount === String(amt) ? "#EFF6FF" : quickAmountHovered === String(amt) ? "#F9FAFB" : "white",
                       color: contributionForm.amount === String(amt) ? "#2563EB" : "#111111",
@@ -557,10 +567,10 @@ export default function GoalsPage() {
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", gap: isMobile ? "12px" : "0" }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Savings Goals</h1>
-          <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>Track your savings progress</p>
+          <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Savings Goals</h1>
+          <p style={{ fontSize: isMobile ? "13px" : "15px", color: "#6B7280", marginTop: "2px" }}>Track your savings progress</p>
         </div>
         <button
           onClick={() => { resetGoalForm(); setAddGoalOpen(true) }}
@@ -569,7 +579,7 @@ export default function GoalsPage() {
           onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.98)" }}
           onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1)" }}
           style={{
-            display: "inline-flex", alignItems: "center", gap: "8px",
+            display: "inline-flex", alignItems: "center", justifyContent: isMobile ? "center" : "flex-start", gap: "8px",
             borderRadius: "9999px", padding: "10px 20px",
             background: addBtnHovered ? "#1D4ED8" : "#2563EB",
             fontSize: "14px", fontWeight: 500, color: "white",
@@ -583,20 +593,22 @@ export default function GoalsPage() {
       </div>
 
       {overview && (
-        <div style={{ background: "white", borderRadius: "20px", padding: "24px", border: "1px solid #E5E7EB", display: "flex", alignItems: "center", gap: "24px" }}>
-          <ProgressRing percentage={overallPercentage} color="#2563EB" size={96} />
+        <div style={{ background: "white", borderRadius: "20px", padding: isMobile ? "16px" : "24px", border: "1px solid #E5E7EB", display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", gap: isMobile ? "16px" : "24px" }}>
+          <div style={{ display: "flex", justifyContent: isMobile ? "center" : "flex-start" }}>
+            <ProgressRing percentage={overallPercentage} color="#2563EB" size={isMobile ? 72 : 96} />
+          </div>
           <div style={{ flex: 1 }}>
             <p style={{ fontSize: "13px", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.05em" }}>Overall Progress</p>
-            <p style={{ fontSize: "28px", fontWeight: 700, color: "#111111", marginTop: "4px" }}>{formatCurrency(overview.totalSaved)}</p>
+            <p style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", marginTop: "4px" }}>{formatCurrency(overview.totalSaved)}</p>
             <p style={{ fontSize: "14px", color: "#6B7280", marginTop: "2px" }}>of {formatCurrency(overview.totalTarget)} total target</p>
           </div>
-          <div style={{ display: "flex", gap: "32px" }}>
+          <div style={{ display: "flex", gap: "32px", justifyContent: isMobile ? "center" : "flex-start" }}>
             <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: "24px", fontWeight: 700, color: "#111111" }}>{overview.activeGoals}</p>
+              <p style={{ fontSize: isMobile ? "20px" : "24px", fontWeight: 700, color: "#111111" }}>{overview.activeGoals}</p>
               <p style={{ fontSize: "12px", color: "#9CA3AF", marginTop: "2px" }}>Active</p>
             </div>
             <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: "24px", fontWeight: 700, color: "#16A34A" }}>{overview.completedGoals}</p>
+              <p style={{ fontSize: isMobile ? "20px" : "24px", fontWeight: 700, color: "#16A34A" }}>{overview.completedGoals}</p>
               <p style={{ fontSize: "12px", color: "#9CA3AF", marginTop: "2px" }}>Completed</p>
             </div>
           </div>
@@ -604,7 +616,7 @@ export default function GoalsPage() {
       )}
 
       {goals.length > 0 ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: isMobile ? "12px" : "16px" }}>
           {goals.map((goal) => {
             const percentage = goal.targetAmount > 0 ? Math.min((goal.currentSaved / goal.targetAmount) * 100, 100) : 0
             const isHovered = hoveredCard === goal.id
@@ -615,7 +627,7 @@ export default function GoalsPage() {
                 onMouseEnter={() => setHoveredCard(goal.id)}
                 onMouseLeave={() => setHoveredCard(null)}
                 style={{
-                  background: "white", borderRadius: "20px", padding: "24px",
+                  background: "white", borderRadius: "20px", padding: isMobile ? "16px" : "24px",
                   border: "1px solid #E5E7EB",
                   boxShadow: isHovered ? "0 2px 8px rgba(0,0,0,0.06)" : "0 1px 3px rgba(0,0,0,0.04)",
                   transition: "all 200ms ease", cursor: "pointer",
@@ -624,13 +636,13 @@ export default function GoalsPage() {
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <div style={{
-                      display: "flex", width: "40px", height: "40px", alignItems: "center", justifyContent: "center",
-                      borderRadius: "10px", fontSize: "18px", backgroundColor: goal.color + "15",
+                      display: "flex", width: isMobile ? "36px" : "40px", height: isMobile ? "36px" : "40px", alignItems: "center", justifyContent: "center",
+                      borderRadius: "10px", fontSize: isMobile ? "16px" : "18px", backgroundColor: goal.color + "15",
                     }}>
                       {goal.icon}
                     </div>
                     <div>
-                      <p style={{ fontSize: "15px", fontWeight: 600, color: "#111111" }}>{goal.name}</p>
+                      <p style={{ fontSize: isMobile ? "14px" : "15px", fontWeight: 600, color: "#111111" }}>{goal.name}</p>
                       <span style={{
                         display: "inline-block", fontSize: "11px", fontWeight: 500, padding: "2px 8px",
                         borderRadius: "9999px", marginTop: "2px",
@@ -644,14 +656,14 @@ export default function GoalsPage() {
                 </div>
 
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "16px" }}>
-                  <ProgressRing percentage={percentage} color={goal.color} size={88} />
+                  <ProgressRing percentage={percentage} color={goal.color} size={isMobile ? 72 : 88} />
                 </div>
 
                 <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "12px" }}>
-                  <p style={{ fontSize: "14px", fontWeight: 600, color: "#111111" }}>
+                  <p style={{ fontSize: isMobile ? "13px" : "14px", fontWeight: 600, color: "#111111" }}>
                     {formatCurrency(goal.currentSaved)} <span style={{ fontWeight: 400, color: "#9CA3AF" }}>of {formatCurrency(goal.targetAmount)}</span>
                   </p>
-                  <p style={{ fontSize: "14px", fontWeight: 600, color: goal.color }}>{Math.round(percentage)}%</p>
+                  <p style={{ fontSize: isMobile ? "13px" : "14px", fontWeight: 600, color: goal.color }}>{Math.round(percentage)}%</p>
                 </div>
 
                 {goal.deadline && (
@@ -680,11 +692,11 @@ export default function GoalsPage() {
           })}
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 0" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: isMobile ? "48px 0" : "80px 0" }}>
           <div style={{ width: "64px", height: "64px", borderRadius: "9999px", background: "#F3F4F6", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}>
             <Target style={{ width: "24px", height: "24px", color: "#9CA3AF" }} />
           </div>
-          <p style={{ fontSize: "16px", fontWeight: 500, color: "#111111", marginBottom: "4px" }}>No savings goals yet</p>
+          <p style={{ fontSize: isMobile ? "15px" : "16px", fontWeight: 500, color: "#111111", marginBottom: "4px" }}>No savings goals yet</p>
           <p style={{ fontSize: "14px", color: "#9CA3AF", marginBottom: "24px" }}>Create a goal to start tracking your savings</p>
           <button
             onClick={() => { resetGoalForm(); setAddGoalOpen(true) }}
@@ -726,7 +738,7 @@ export default function GoalsPage() {
             />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "12px" }}>
             <div>
               <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Target Amount</label>
               <input
@@ -781,7 +793,7 @@ export default function GoalsPage() {
 
           <div>
             <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Icon</label>
-            <div style={{ display: "flex", gap: "6px" }}>
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
               {goalIcons.map((emoji) => {
                 const isSelected = goalForm.icon === emoji
                 return (
@@ -792,8 +804,8 @@ export default function GoalsPage() {
                     onMouseEnter={() => setSelectedIcon(emoji)}
                     onMouseLeave={() => setSelectedIcon(null)}
                     style={{
-                      display: "flex", width: "40px", height: "40px", alignItems: "center", justifyContent: "center",
-                      borderRadius: "10px", fontSize: "18px", transition: "all 150ms ease", cursor: "pointer",
+                      display: "flex", width: isMobile ? "36px" : "40px", height: isMobile ? "36px" : "40px", alignItems: "center", justifyContent: "center",
+                      borderRadius: "10px", fontSize: isMobile ? "16px" : "18px", transition: "all 150ms ease", cursor: "pointer",
                       background: isSelected ? "#EFF6FF" : selectedIcon === emoji ? "#F3F4F6" : "transparent",
                       boxShadow: isSelected ? "0 0 0 2px #2563EB" : "none",
                       transform: isSelected ? "scale(1.1)" : "scale(1)",
@@ -808,7 +820,7 @@ export default function GoalsPage() {
 
           <div>
             <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Color</label>
-            <div style={{ display: "flex", gap: "8px" }}>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               {goalColors.map((color) => {
                 const isSelected = goalForm.color === color
                 return (
@@ -819,7 +831,7 @@ export default function GoalsPage() {
                     onMouseEnter={() => setSelectedColor(color)}
                     onMouseLeave={() => setSelectedColor(null)}
                     style={{
-                      width: "32px", height: "32px", borderRadius: "9999px",
+                      width: isMobile ? "28px" : "32px", height: isMobile ? "28px" : "32px", borderRadius: "9999px",
                       transition: "all 150ms ease", cursor: "pointer",
                       backgroundColor: color,
                       boxShadow: isSelected ? "0 0 0 2px white, 0 0 0 4px #111111" : "none",
@@ -893,7 +905,7 @@ export default function GoalsPage() {
                   onMouseEnter={() => setQuickAmountHovered(String(amt))}
                   onMouseLeave={() => setQuickAmountHovered(null)}
                   style={{
-                    flex: 1, padding: "10px", borderRadius: "12px", fontSize: "14px", fontWeight: 500,
+                    flex: 1, padding: "10px", borderRadius: "12px", fontSize: isMobile ? "13px" : "14px", fontWeight: 500,
                     border: contributionForm.amount === String(amt) ? "1px solid #2563EB" : "1px solid #E5E7EB",
                     background: contributionForm.amount === String(amt) ? "#EFF6FF" : quickAmountHovered === String(amt) ? "#F9FAFB" : "white",
                     color: contributionForm.amount === String(amt) ? "#2563EB" : "#111111",

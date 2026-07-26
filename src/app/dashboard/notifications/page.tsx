@@ -46,6 +46,14 @@ export default function NotificationsPage() {
   const [hoveredFilter, setHoveredFilter] = useState<string | null>(null)
   const [markAllHovered, setMarkAllHovered] = useState(false)
   const [clearHovered, setClearHovered] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -114,10 +122,10 @@ export default function NotificationsPage() {
   ]
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "12px" : "24px" }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", gap: isMobile ? "12px" : "0" }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Notifications</h1>
+          <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Notifications</h1>
           <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>
             {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
           </p>
@@ -205,7 +213,7 @@ export default function NotificationsPage() {
                   display: "flex",
                   alignItems: "flex-start",
                   gap: "14px",
-                  padding: "16px 20px",
+                  padding: isMobile ? "12px" : "16px 20px",
                   cursor: "pointer",
                   background: !n.isRead ? "#F8FAFF" : isHovered ? "#FAFAFA" : "white",
                   transition: "background 150ms ease",

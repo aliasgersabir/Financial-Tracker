@@ -37,6 +37,14 @@ export default function ForecastingPage() {
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState("3m")
   const [hoverPeriod, setHoverPeriod] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -77,13 +85,13 @@ export default function ForecastingPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "16px" : "24px" }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: isMobile ? "stretch" : "space-between", gap: isMobile ? "12px" : "0" }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Financial Forecasting</h1>
-          <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>Project your financial future</p>
+          <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Financial Forecasting</h1>
+          <p style={{ fontSize: isMobile ? "13px" : "15px", color: "#6B7280", marginTop: "2px" }}>Project your financial future</p>
         </div>
-        <div style={{ display: "flex", gap: "6px", background: "#F3F4F6", borderRadius: "9999px", padding: "4px" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", background: "#F3F4F6", borderRadius: "9999px", padding: "4px" }}>
           {periods.map((p) => {
             const isActive = period === p.value
             const isHovered = hoverPeriod === p.value
@@ -94,8 +102,8 @@ export default function ForecastingPage() {
                 onMouseEnter={() => setHoverPeriod(p.value)}
                 onMouseLeave={() => setHoverPeriod(null)}
                 style={{
-                  borderRadius: "9999px", padding: "6px 16px",
-                  fontSize: "13px", fontWeight: 500, transition: "all 150ms ease",
+                  borderRadius: "9999px", padding: isMobile ? "6px 12px" : "6px 16px",
+                  fontSize: isMobile ? "12px" : "13px", fontWeight: 500, transition: "all 150ms ease",
                   cursor: "pointer", border: "none",
                   background: isActive ? "#111111" : "transparent",
                   color: isActive ? "white" : isHovered ? "#111111" : "#6B7280",
@@ -110,7 +118,7 @@ export default function ForecastingPage() {
 
       {data && (
         <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: "16px" }}>
             {[
               { label: "Projected Savings", value: formatCurrency(data.projectedSavings), icon: TrendingUp, iconBg: "#F0FDF4", iconColor: "#16A34A" },
               { label: "Projected Balance", value: formatCurrency(data.projectedBalance), icon: ArrowUpRight, iconBg: "#EFF6FF", iconColor: "#2563EB" },
@@ -119,33 +127,33 @@ export default function ForecastingPage() {
               <div
                 key={card.label}
                 style={{
-                  borderRadius: "20px", background: "white", padding: "20px",
+                  borderRadius: "20px", background: "white", padding: isMobile ? "16px" : "20px",
                   boxShadow: "0 1px 3px rgba(0,0,0,0.04)", transition: "box-shadow 200ms",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-                  <span style={{ fontSize: "13px", fontWeight: 500, color: "#6B7280" }}>{card.label}</span>
+                  <span style={{ fontSize: isMobile ? "12px" : "13px", fontWeight: 500, color: "#6B7280" }}>{card.label}</span>
                   <div style={{ display: "flex", height: "36px", width: "36px", alignItems: "center", justifyContent: "center", borderRadius: "10px", background: card.iconBg }}>
                     <card.icon style={{ height: "18px", width: "18px", color: card.iconColor }} />
                   </div>
                 </div>
-                <p style={{ fontSize: "24px", fontWeight: 600, color: "#111111", letterSpacing: "-0.025em" }}>{card.value}</p>
+                <p style={{ fontSize: isMobile ? "20px" : "24px", fontWeight: 600, color: "#111111", letterSpacing: "-0.025em" }}>{card.value}</p>
               </div>
             ))}
           </div>
 
-          <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-            <h3 style={{ fontSize: "17px", fontWeight: 600, color: "#111111", marginBottom: "20px" }}>Projection Overview</h3>
-            <div style={{ height: "320px" }}>
+          <div style={{ borderRadius: "20px", background: "white", padding: isMobile ? "16px" : "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <h3 style={{ fontSize: isMobile ? "15px" : "17px", fontWeight: 600, color: "#111111", marginBottom: "20px" }}>Projection Overview</h3>
+            <div style={{ height: isMobile ? "220px" : "320px" }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data.projections}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-                  <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 12, fill: "#9CA3AF" }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+                  <XAxis dataKey="month" tick={{ fontSize: isMobile ? 10 : 12, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: isMobile ? 10 : 12, fill: "#9CA3AF" }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
                   <Tooltip
                     contentStyle={{
                       borderRadius: "12px", border: "1px solid #F3F4F6",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: "13px", padding: "8px 12px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: isMobile ? "12px" : "13px", padding: "8px 12px",
                     }}
                     formatter={(value) => formatCurrency(Number(value))}
                   />
@@ -156,7 +164,7 @@ export default function ForecastingPage() {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "20px", marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #F3F4F6" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: isMobile ? "12px" : "20px", marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #F3F4F6" }}>
               {[
                 { label: "Income", color: "#16A34A" },
                 { label: "Expenses", color: "#DC2626" },
@@ -165,14 +173,14 @@ export default function ForecastingPage() {
               ].map((item) => (
                 <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                   <div style={{ height: "10px", width: "10px", borderRadius: "9999px", background: item.color }} />
-                  <span style={{ fontSize: "13px", color: "#6B7280" }}>{item.label}</span>
+                  <span style={{ fontSize: isMobile ? "12px" : "13px", color: "#6B7280" }}>{item.label}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-            <h3 style={{ fontSize: "17px", fontWeight: 600, color: "#111111", marginBottom: "20px" }}>Monthly Projections</h3>
+          <div style={{ borderRadius: "20px", background: "white", padding: isMobile ? "16px" : "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <h3 style={{ fontSize: isMobile ? "15px" : "17px", fontWeight: 600, color: "#111111", marginBottom: "20px" }}>Monthly Projections</h3>
             <div style={{ overflowX: "auto" as const }}>
               <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
                 <thead>
@@ -180,7 +188,7 @@ export default function ForecastingPage() {
                     {["Month", "Income", "Expenses", "Savings", "Balance"].map((h) => (
                       <th key={h} style={{
                         textAlign: h === "Month" ? "left" : "right",
-                        padding: "12px 16px", fontSize: "12px", fontWeight: 500,
+                        padding: isMobile ? "10px 8px" : "12px 16px", fontSize: isMobile ? "10px" : "12px", fontWeight: 500,
                         color: "#9CA3AF", textTransform: "uppercase" as const, letterSpacing: "0.05em",
                       }}>
                         {h}
@@ -191,11 +199,11 @@ export default function ForecastingPage() {
                 <tbody>
                   {data.projections.map((row, i) => (
                     <tr key={i} style={{ borderBottom: "1px solid #F3F4F6" }}>
-                      <td style={{ padding: "12px 16px", fontSize: "14px", fontWeight: 500, color: "#111111" }}>{row.month}</td>
-                      <td style={{ padding: "12px 16px", fontSize: "14px", color: "#16A34A", textAlign: "right" }}>{formatCurrency(row.income)}</td>
-                      <td style={{ padding: "12px 16px", fontSize: "14px", color: "#DC2626", textAlign: "right" }}>{formatCurrency(row.expenses)}</td>
-                      <td style={{ padding: "12px 16px", fontSize: "14px", color: "#2563EB", textAlign: "right", fontWeight: 500 }}>{formatCurrency(row.savings)}</td>
-                      <td style={{ padding: "12px 16px", fontSize: "14px", color: "#111111", textAlign: "right", fontWeight: 600 }}>{formatCurrency(row.balance)}</td>
+                      <td style={{ padding: isMobile ? "10px 8px" : "12px 16px", fontSize: isMobile ? "12px" : "14px", fontWeight: 500, color: "#111111" }}>{row.month}</td>
+                      <td style={{ padding: isMobile ? "10px 8px" : "12px 16px", fontSize: isMobile ? "12px" : "14px", color: "#16A34A", textAlign: "right" }}>{formatCurrency(row.income)}</td>
+                      <td style={{ padding: isMobile ? "10px 8px" : "12px 16px", fontSize: isMobile ? "12px" : "14px", color: "#DC2626", textAlign: "right" }}>{formatCurrency(row.expenses)}</td>
+                      <td style={{ padding: isMobile ? "10px 8px" : "12px 16px", fontSize: isMobile ? "12px" : "14px", color: "#2563EB", textAlign: "right", fontWeight: 500 }}>{formatCurrency(row.savings)}</td>
+                      <td style={{ padding: isMobile ? "10px 8px" : "12px 16px", fontSize: isMobile ? "12px" : "14px", color: "#111111", textAlign: "right", fontWeight: 600 }}>{formatCurrency(row.balance)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -208,17 +216,17 @@ export default function ForecastingPage() {
       {!data && !loading && (
         <div style={{
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-          padding: "80px 0", background: "white", borderRadius: "20px",
+          padding: isMobile ? "40px 0" : "80px 0", background: "white", borderRadius: "20px",
           boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
         }}>
           <div style={{
-            width: "64px", height: "64px", borderRadius: "9999px", background: "#F3F4F6",
+            width: isMobile ? "48px" : "64px", height: isMobile ? "48px" : "64px", borderRadius: "9999px", background: "#F3F4F6",
             display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px",
           }}>
-            <TrendingUp style={{ width: "24px", height: "24px", color: "#9CA3AF" }} />
+            <TrendingUp style={{ width: isMobile ? "20px" : "24px", height: isMobile ? "20px" : "24px", color: "#9CA3AF" }} />
           </div>
-          <p style={{ fontSize: "16px", fontWeight: 500, color: "#111111", marginBottom: "4px" }}>No forecast data</p>
-          <p style={{ fontSize: "14px", color: "#9CA3AF" }}>Add transactions to see financial projections</p>
+          <p style={{ fontSize: isMobile ? "14px" : "16px", fontWeight: 500, color: "#111111", marginBottom: "4px" }}>No forecast data</p>
+          <p style={{ fontSize: isMobile ? "12px" : "14px", color: "#9CA3AF" }}>Add transactions to see financial projections</p>
         </div>
       )}
     </div>

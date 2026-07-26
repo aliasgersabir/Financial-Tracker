@@ -43,6 +43,14 @@ export default function ReportsPage() {
   const [genBtnHovered, setGenBtnHovered] = useState(false)
   const [hoveredPeriod, setHoveredPeriod] = useState<string | null>(null)
   const [createBtnHovered, setCreateBtnHovered] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -113,10 +121,10 @@ export default function ReportsPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "12px" : "24px" }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", gap: isMobile ? "12px" : "0" }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Reports</h1>
+          <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Reports</h1>
           <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>Analyze your finances</p>
         </div>
         <button
@@ -143,7 +151,7 @@ export default function ReportsPage() {
       </div>
 
       {showForm && (
-        <div style={{ background: "white", borderRadius: "20px", border: "1px solid #E5E7EB", padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div style={{ background: "white", borderRadius: "20px", border: "1px solid #E5E7EB", padding: isMobile ? "16px" : "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
           <div style={{ display: "flex", gap: "6px", background: "#F3F4F6", borderRadius: "9999px", padding: "4px", width: "fit-content" }}>
             {periods.map((p) => {
               const isActive = period === p
@@ -261,7 +269,7 @@ export default function ReportsPage() {
                   onClick={() => setExpandedId(isExpanded ? null : report.id)}
                   onMouseEnter={() => setHoveredCard(report.id)}
                   onMouseLeave={() => setHoveredCard(null)}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", cursor: "pointer" }}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between",           padding: isMobile ? "16px" : "20px 24px", cursor: "pointer" }}
                 >
                   <div>
                     <p style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>{report.title}</p>
@@ -296,7 +304,7 @@ export default function ReportsPage() {
 
                 {isExpanded && (
                   <div style={{ padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: "24px" }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: "12px" }}>
                       {[
                         { label: "Income", value: formatCurrency(data.totalIncome), color: "#16A34A" },
                         { label: "Expenses", value: formatCurrency(data.totalExpenses), color: "#DC2626" },
@@ -310,7 +318,7 @@ export default function ReportsPage() {
                       ))}
                     </div>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "12px" }}>
                       {data.topCategory && (
                         <div style={{ background: "#F8F8F6", borderRadius: "16px", padding: "16px" }}>
                           <p style={{ fontSize: "12px", color: "#6B7280", margin: 0, fontWeight: 500 }}>Top Category</p>

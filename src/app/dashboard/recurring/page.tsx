@@ -47,6 +47,7 @@ export default function RecurringPage() {
   const [submitBtnHovered, setSubmitBtnHovered] = useState(false)
   const [inputFocused, setInputFocused] = useState(false)
   const [upcoming, setUpcoming] = useState<RecurringRule[]>([])
+  const [isMobile, setIsMobile] = useState(false)
 
   const [form, setForm] = useState({
     accountId: "",
@@ -59,6 +60,13 @@ export default function RecurringPage() {
     startDate: new Date().toISOString().split("T")[0],
     endDate: "",
   })
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   useEffect(() => {
     if (status === "unauthenticated") window.location.href = "/login"
@@ -207,12 +215,12 @@ export default function RecurringPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "12px" : "24px" }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", gap: isMobile ? "12px" : "0" }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Recurring Transactions</h1>
+          <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Recurring Transactions</h1>
           <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>Automate your regular income and expenses</p>
         </div>
         <button
@@ -222,7 +230,7 @@ export default function RecurringPage() {
           onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.98)" }}
           onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1)" }}
           style={{
-            display: "inline-flex", alignItems: "center", gap: "8px",
+            display: "inline-flex", alignItems: "center", justifyContent: isMobile ? "center" : "flex-start", gap: "8px",
             borderRadius: "9999px", background: addBtnHovered ? "#1D4ED8" : "#2563EB",
             padding: "10px 20px", fontSize: "14px", fontWeight: 500, color: "white",
             transition: "all 150ms ease", boxShadow: "0 1px 2px rgba(0,0,0,0.05)", cursor: "pointer",
@@ -244,7 +252,7 @@ export default function RecurringPage() {
               onMouseEnter={() => setHoveredFilter(f)}
               onMouseLeave={() => setHoveredFilter(null)}
               style={{
-                borderRadius: "9999px", padding: "6px 16px", fontSize: "13px", fontWeight: 500,
+                borderRadius: "9999px", padding: isMobile ? "6px 12px" : "6px 16px", fontSize: "13px", fontWeight: 500,
                 transition: "all 150ms ease", cursor: "pointer",
                 background: isActive ? "#111111" : "transparent",
                 color: isActive ? "white" : isHovered ? "#111111" : "#6B7280",
@@ -264,10 +272,10 @@ export default function RecurringPage() {
               onMouseEnter={() => setHoveredCard(rule.id)}
               onMouseLeave={() => setHoveredCard(null)}
               style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                borderRadius: "16px", background: "white", padding: "16px 20px",
+                display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: isMobile ? "stretch" : "space-between",
+                borderRadius: "16px", background: "white", padding: isMobile ? "16px" : "16px 20px",
                 boxShadow: hoveredCard === rule.id ? "0 2px 8px rgba(0,0,0,0.06)" : "0 1px 3px rgba(0,0,0,0.04)",
-                transition: "all 200ms ease", opacity: rule.isActive ? 1 : 0.6,
+                transition: "all 200ms ease", opacity: rule.isActive ? 1 : 0.6, gap: isMobile ? "12px" : "0",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "14px", flex: 1 }}>
@@ -289,7 +297,7 @@ export default function RecurringPage() {
                       {rule.type}
                     </span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px", flexWrap: "wrap" }}>
                     <span style={{ fontSize: "12px", color: "#9CA3AF" }}>{frequencyLabels[rule.frequency]}{rule.interval > 1 ? ` (every ${rule.interval})` : ""}</span>
                     <span style={{ fontSize: "12px", color: "#D1D5DB" }}>·</span>
                     <span style={{ fontSize: "12px", color: "#9CA3AF" }}>{rule.account.name}</span>
@@ -303,8 +311,8 @@ export default function RecurringPage() {
                 </div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                <div style={{ textAlign: "right" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px", justifyContent: isMobile ? "space-between" : "flex-end" }}>
+                <div style={{ textAlign: isMobile ? "left" : "right" }}>
                   <span style={{ fontSize: "16px", fontWeight: 600, color: rule.type === "income" ? "#16A34A" : "#DC2626" }}>
                     {rule.type === "income" ? "+" : "-"}{formatCurrency(rule.amount)}
                   </span>
@@ -313,64 +321,70 @@ export default function RecurringPage() {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => toggleActive(rule)}
-                  style={{
-                    width: "44px", height: "24px", borderRadius: "12px", border: "none", cursor: "pointer",
-                    background: rule.isActive ? "#2563EB" : "#E5E7EB",
-                    position: "relative", transition: "background 200ms ease",
-                  }}
-                >
-                  <div style={{
-                    width: "20px", height: "20px", borderRadius: "9999px", background: "white",
-                    position: "absolute", top: "2px",
-                    left: rule.isActive ? "22px" : "2px",
-                    transition: "left 200ms ease",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                  }} />
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: isMobile ? "8px" : "16px" }}>
+                  <button
+                    onClick={() => toggleActive(rule)}
+                    style={{
+                      width: "44px", height: "24px", borderRadius: "12px", border: "none", cursor: "pointer",
+                      background: rule.isActive ? "#2563EB" : "#E5E7EB",
+                      position: "relative", transition: "background 200ms ease",
+                    }}
+                  >
+                    <div style={{
+                      width: "20px", height: "20px", borderRadius: "9999px", background: "white",
+                      position: "absolute", top: "2px",
+                      left: rule.isActive ? "22px" : "2px",
+                      transition: "left 200ms ease",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                    }} />
+                  </button>
 
-                <button
-                  onClick={() => runNow(rule)}
-                  style={{
-                    width: "32px", height: "32px", borderRadius: "8px", border: "1px solid #E5E7EB",
-                    background: "white", display: "flex", alignItems: "center", justifyContent: "center",
-                    cursor: "pointer", transition: "all 150ms ease",
-                  }}
-                  title="Run now"
-                >
-                  <Play style={{ width: "14px", height: "14px", color: "#2563EB" }} />
-                </button>
+                  {!isMobile && (
+                    <>
+                      <button
+                        onClick={() => runNow(rule)}
+                        style={{
+                          width: "32px", height: "32px", borderRadius: "8px", border: "1px solid #E5E7EB",
+                          background: "white", display: "flex", alignItems: "center", justifyContent: "center",
+                          cursor: "pointer", transition: "all 150ms ease",
+                        }}
+                        title="Run now"
+                      >
+                        <Play style={{ width: "14px", height: "14px", color: "#2563EB" }} />
+                      </button>
 
-                <button
-                  onClick={() => openEdit(rule)}
-                  style={{
-                    width: "32px", height: "32px", borderRadius: "8px", border: "1px solid #E5E7EB",
-                    background: "white", display: "flex", alignItems: "center", justifyContent: "center",
-                    cursor: "pointer", transition: "all 150ms ease",
-                  }}
-                  title="Edit"
-                >
-                  <Pencil style={{ width: "14px", height: "14px", color: "#6B7280" }} />
-                </button>
+                      <button
+                        onClick={() => openEdit(rule)}
+                        style={{
+                          width: "32px", height: "32px", borderRadius: "8px", border: "1px solid #E5E7EB",
+                          background: "white", display: "flex", alignItems: "center", justifyContent: "center",
+                          cursor: "pointer", transition: "all 150ms ease",
+                        }}
+                        title="Edit"
+                      >
+                        <Pencil style={{ width: "14px", height: "14px", color: "#6B7280" }} />
+                      </button>
 
-                <button
-                  onClick={() => handleDelete(rule.id)}
-                  style={{
-                    width: "32px", height: "32px", borderRadius: "8px", border: "1px solid #E5E7EB",
-                    background: "white", display: "flex", alignItems: "center", justifyContent: "center",
-                    cursor: "pointer", transition: "all 150ms ease",
-                  }}
-                  title="Delete"
-                >
-                  <Trash2 style={{ width: "14px", height: "14px", color: "#DC2626" }} />
-                </button>
+                      <button
+                        onClick={() => handleDelete(rule.id)}
+                        style={{
+                          width: "32px", height: "32px", borderRadius: "8px", border: "1px solid #E5E7EB",
+                          background: "white", display: "flex", alignItems: "center", justifyContent: "center",
+                          cursor: "pointer", transition: "all 150ms ease",
+                        }}
+                        title="Delete"
+                      >
+                        <Trash2 style={{ width: "14px", height: "14px", color: "#DC2626" }} />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 0" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: isMobile ? "40px 0" : "80px 0" }}>
           <div style={{ width: "64px", height: "64px", borderRadius: "9999px", background: "#F3F4F6", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}>
             <span style={{ fontSize: "24px" }}>🔄</span>
           </div>
@@ -401,9 +415,9 @@ export default function RecurringPage() {
               Upcoming (Next 30 Days)
             </h2>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "10px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(5, 1fr)", gap: isMobile ? "8px" : "10px" }}>
             {upcoming.map((rule) => (
-              <div key={rule.id} style={{ borderRadius: "14px", background: "white", padding: "14px", border: "1px solid #F3F4F6" }}>
+              <div key={rule.id} style={{ borderRadius: "14px", background: "white", padding: isMobile ? "12px" : "14px", border: "1px solid #F3F4F6" }}>
                 <p style={{ fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{rule.description}</p>
                 <p style={{ fontSize: "15px", fontWeight: 600, color: rule.type === "income" ? "#16A34A" : "#DC2626", marginBottom: "6px" }}>
                   {rule.type === "income" ? "+" : "-"}{formatCurrency(rule.amount)}
@@ -442,7 +456,7 @@ export default function RecurringPage() {
             />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "12px" }}>
             <div>
               <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Amount</label>
               <input
@@ -484,7 +498,7 @@ export default function RecurringPage() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "12px" }}>
             <div>
               <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Account</label>
               <select
@@ -517,7 +531,7 @@ export default function RecurringPage() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "12px" }}>
             <div>
               <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Frequency</label>
               <select
@@ -551,7 +565,7 @@ export default function RecurringPage() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "12px" }}>
             <div>
               <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Start Date</label>
               <input

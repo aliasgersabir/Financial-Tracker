@@ -43,6 +43,14 @@ export default function SubscriptionsPage() {
   const [hoverCancel, setHoverCancel] = useState(false)
   const [hoverSubmit, setHoverSubmit] = useState(false)
   const [inputFocused, setInputFocused] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -146,20 +154,20 @@ export default function SubscriptionsPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "12px" : "24px" }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", gap: isMobile ? "12px" : "0" }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Subscriptions</h1>
+          <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Subscriptions</h1>
           <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>Track and manage recurring payments</p>
         </div>
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div style={{ display: "flex", gap: "8px", flexWrap: isMobile ? "wrap" : "nowrap" }}>
           <button
             onClick={handleDetect}
             onMouseEnter={() => setHoverDetect(true)}
             onMouseLeave={() => setHoverDetect(false)}
             disabled={detecting}
             style={{
-              display: "inline-flex", alignItems: "center", gap: "8px",
+              display: "inline-flex", alignItems: "center", gap: "8px", flex: isMobile ? 1 : "none", justifyContent: "center",
               borderRadius: "9999px", padding: "10px 20px",
               background: hoverDetect ? "#F3F4F6" : "white",
               border: "1px solid #E5E7EB", fontSize: "14px", fontWeight: 500,
@@ -168,14 +176,14 @@ export default function SubscriptionsPage() {
             }}
           >
             <RefreshCw style={{ width: "16px", height: "16px", animation: detecting ? "spin 1s linear infinite" : "none" }} />
-            {detecting ? "Detecting..." : "Detect Subscriptions"}
+            {detecting ? "Detecting..." : "Detect"}
           </button>
           <button
             onClick={() => { setEditingSub(null); setForm({ name: "", amount: "", frequency: "monthly", nextRenewal: "", color: "#2563EB" }); setModalOpen(true) }}
             onMouseEnter={() => setHoverAdd(true)}
             onMouseLeave={() => setHoverAdd(false)}
             style={{
-              display: "inline-flex", alignItems: "center", gap: "8px",
+              display: "inline-flex", alignItems: "center", gap: "8px", flex: isMobile ? 1 : "none", justifyContent: "center",
               borderRadius: "9999px", padding: "10px 20px",
               background: hoverAdd ? "#1D4ED8" : "#2563EB",
               fontSize: "14px", fontWeight: 500, color: "white",
@@ -184,12 +192,12 @@ export default function SubscriptionsPage() {
             }}
           >
             <Plus style={{ width: "16px", height: "16px" }} />
-            Add Subscription
+            Add
           </button>
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: isMobile ? "12px" : "16px" }}>
         {[
           { label: "Total Monthly Cost", value: formatCurrency(totalMonthly), icon: CreditCard, iconBg: "#EFF6FF", iconColor: "#2563EB" },
           { label: "Total Annual Cost", value: formatCurrency(totalAnnual), icon: Calendar, iconBg: "#FEF3C7", iconColor: "#D97706" },
@@ -198,7 +206,7 @@ export default function SubscriptionsPage() {
           <div
             key={card.label}
             style={{
-              borderRadius: "20px", background: "white", padding: "20px",
+              borderRadius: "20px", background: "white", padding: isMobile ? "16px" : "20px",
               boxShadow: "0 1px 3px rgba(0,0,0,0.04)", transition: "box-shadow 200ms",
             }}
           >
@@ -208,7 +216,7 @@ export default function SubscriptionsPage() {
                 <card.icon style={{ height: "18px", width: "18px", color: card.iconColor }} />
               </div>
             </div>
-            <p style={{ fontSize: "24px", fontWeight: 600, color: "#111111", letterSpacing: "-0.025em" }}>{card.value}</p>
+            <p style={{ fontSize: isMobile ? "20px" : "24px", fontWeight: 600, color: "#111111", letterSpacing: "-0.025em" }}>{card.value}</p>
           </div>
         ))}
       </div>
@@ -231,7 +239,7 @@ export default function SubscriptionsPage() {
       </div>
 
       {filteredSubs.length > 0 ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: isMobile ? "12px" : "16px" }}>
           {filteredSubs.map((sub) => {
             const isHovered = hoveredCard === sub.id
             const monthlyEq = getMonthlyEquivalent(sub.amount, sub.frequency)
@@ -241,7 +249,7 @@ export default function SubscriptionsPage() {
                 onMouseEnter={() => setHoveredCard(sub.id)}
                 onMouseLeave={() => setHoveredCard(null)}
                 style={{
-                  background: "white", borderRadius: "20px", padding: "20px",
+                  background: "white", borderRadius: "20px", padding: isMobile ? "16px" : "20px",
                   boxShadow: isHovered ? "0 2px 8px rgba(0,0,0,0.06)" : "0 1px 3px rgba(0,0,0,0.04)",
                   transition: "all 200ms ease", display: "flex", flexDirection: "column", gap: "14px",
                 }}
@@ -309,7 +317,7 @@ export default function SubscriptionsPage() {
       ) : (
         <div style={{
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-          padding: "80px 0", background: "white", borderRadius: "20px",
+          padding: isMobile ? "40px 16px" : "80px 0", background: "white", borderRadius: "20px",
           boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
         }}>
           <div style={{
@@ -368,7 +376,7 @@ export default function SubscriptionsPage() {
             />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "12px" }}>
             <div>
               <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Amount</label>
               <input
@@ -425,7 +433,7 @@ export default function SubscriptionsPage() {
 
           <div>
             <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Color</label>
-            <div style={{ display: "flex", gap: "8px" }}>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               {colors.map((color) => {
                 const isSelected = form.color === color
                 return (

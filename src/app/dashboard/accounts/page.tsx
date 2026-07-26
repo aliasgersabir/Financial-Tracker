@@ -36,12 +36,20 @@ export default function AccountsPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingAccount, setEditingAccount] = useState<Account | null>(null)
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
   const [form, setForm] = useState({
     name: "",
     type: "checking",
     balance: "",
     color: "#2563EB",
   })
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640)
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -112,11 +120,17 @@ export default function AccountsPage() {
   return (
     <>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? 20 : 32 }}>
+        <div style={{
+          display: "flex",
+          flexDirection: isMobile ? "column" : "row",
+          alignItems: isMobile ? "stretch" : "center",
+          justifyContent: "space-between",
+          gap: isMobile ? 12 : 0,
+        }}>
           <div>
-            <h1 style={{ fontSize: 28, fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Accounts</h1>
-            <p style={{ fontSize: 15, color: "#6B7280", marginTop: 2 }}>Manage your financial accounts</p>
+            <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Accounts</h1>
+            <p style={{ fontSize: isMobile ? 13 : 15, color: "#6B7280", marginTop: 2 }}>Manage your financial accounts</p>
           </div>
           <button
             onClick={() => {
@@ -127,17 +141,19 @@ export default function AccountsPage() {
             style={{
               display: "inline-flex",
               alignItems: "center",
+              justifyContent: "center",
               gap: 8,
               borderRadius: 9999,
               background: "#2563EB",
-              padding: "10px 20px",
-              fontSize: 14,
+              padding: isMobile ? "10px 16px" : "10px 20px",
+              fontSize: isMobile ? 13 : 14,
               fontWeight: 500,
               color: "white",
               cursor: "pointer",
               boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
               transition: "all 0.15s ease",
               border: "none",
+              width: isMobile ? "100%" : undefined,
             }}
             onMouseEnter={(e) => (e.currentTarget.style.background = "#1D4ED8")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "#2563EB")}
@@ -147,16 +163,20 @@ export default function AccountsPage() {
           </button>
         </div>
 
-        <div style={{ borderRadius: 20, background: "#111111", padding: 24, color: "white" }}>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontWeight: 500 }}>Total Balance</p>
-          <p style={{ fontSize: 36, fontWeight: 600, marginTop: 4, letterSpacing: "-0.025em" }}>{formatCurrency(totalBalance)}</p>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginTop: 8 }}>
+        <div style={{ borderRadius: 20, background: "#111111", padding: isMobile ? 16 : 24, color: "white" }}>
+          <p style={{ fontSize: isMobile ? 12 : 13, color: "rgba(255,255,255,0.5)", fontWeight: 500 }}>Total Balance</p>
+          <p style={{ fontSize: isMobile ? 28 : 36, fontWeight: 600, marginTop: 4, letterSpacing: "-0.025em" }}>{formatCurrency(totalBalance)}</p>
+          <p style={{ fontSize: isMobile ? 12 : 13, color: "rgba(255,255,255,0.4)", marginTop: 8 }}>
             Across {accounts.length} account{accounts.length !== 1 ? "s" : ""}
           </p>
         </div>
 
         {accounts.length > 0 ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: isMobile ? 12 : 16,
+          }}>
             {accounts.map((account) => {
               const typeInfo = accountTypes.find((t) => t.value === account.type)
               const isHovered = hoveredCard === account.id
@@ -166,19 +186,19 @@ export default function AccountsPage() {
                   style={{
                     borderRadius: 20,
                     background: "white",
-                    padding: 20,
+                    padding: isMobile ? 16 : 20,
                     boxShadow: isHovered ? "0 2px 8px rgba(0,0,0,0.06)" : "0 1px 3px rgba(0,0,0,0.04)",
                     transition: "box-shadow 0.2s ease",
                   }}
-                  onMouseEnter={() => setHoveredCard(account.id)}
-                  onMouseLeave={() => setHoveredCard(null)}
+                  onMouseEnter={() => !isMobile && setHoveredCard(account.id)}
+                  onMouseLeave={() => !isMobile && setHoveredCard(null)}
                 >
-                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: isMobile ? 12 : 16 }}>
                     <div
                       style={{
                         display: "flex",
-                        width: 40,
-                        height: 40,
+                        width: isMobile ? 36 : 40,
+                        height: isMobile ? 36 : 40,
                         alignItems: "center",
                         justifyContent: "center",
                         borderRadius: 12,
@@ -186,9 +206,14 @@ export default function AccountsPage() {
                         background: account.color,
                       }}
                     >
-                      {typeInfo && <typeInfo.icon style={{ width: 20, height: 20 }} />}
+                      {typeInfo && <typeInfo.icon style={{ width: isMobile ? 18 : 20, height: isMobile ? 18 : 20 }} />}
                     </div>
-                    <div style={{ display: "flex", gap: 2, opacity: isHovered ? 1 : 0, transition: "opacity 0.15s ease" }}>
+                    <div style={{
+                      display: "flex",
+                      gap: 2,
+                      opacity: isMobile ? 1 : (isHovered ? 1 : 0),
+                      transition: "opacity 0.15s ease",
+                    }}>
                       <button
                         onClick={() => openEdit(account)}
                         style={{
@@ -229,20 +254,20 @@ export default function AccountsPage() {
                       </button>
                     </div>
                   </div>
-                  <h3 style={{ fontSize: 15, fontWeight: 600, color: "#111111" }}>{account.name}</h3>
-                  <p style={{ fontSize: 13, color: "#9CA3AF", textTransform: "capitalize" }}>{account.type}</p>
-                  <p style={{ fontSize: 22, fontWeight: 600, color: "#111111", marginTop: 12, letterSpacing: "-0.025em" }}>{formatCurrency(account.balance)}</p>
+                  <h3 style={{ fontSize: isMobile ? 14 : 15, fontWeight: 600, color: "#111111" }}>{account.name}</h3>
+                  <p style={{ fontSize: isMobile ? 12 : 13, color: "#9CA3AF", textTransform: "capitalize" }}>{account.type}</p>
+                  <p style={{ fontSize: isMobile ? 18 : 22, fontWeight: 600, color: "#111111", marginTop: isMobile ? 8 : 12, letterSpacing: "-0.025em" }}>{formatCurrency(account.balance)}</p>
                 </div>
               )
             })}
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 0" }}>
-            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#F3F4F6", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
-              <Wallet style={{ width: 28, height: 28, color: "#D1D5DB" }} />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: isMobile ? "40px 0" : "80px 0" }}>
+            <div style={{ width: isMobile ? 56 : 64, height: isMobile ? 56 : 64, borderRadius: "50%", background: "#F3F4F6", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+              <Wallet style={{ width: isMobile ? 24 : 28, height: isMobile ? 24 : 28, color: "#D1D5DB" }} />
             </div>
-            <p style={{ fontSize: 16, fontWeight: 500, color: "#111111", marginBottom: 4 }}>No accounts yet</p>
-            <p style={{ fontSize: 14, color: "#9CA3AF", marginBottom: 24 }}>Add your first account to start tracking</p>
+            <p style={{ fontSize: isMobile ? 14 : 16, fontWeight: 500, color: "#111111", marginBottom: 4 }}>No accounts yet</p>
+            <p style={{ fontSize: isMobile ? 13 : 14, color: "#9CA3AF", marginBottom: 24 }}>Add your first account to start tracking</p>
             <button
               onClick={() => setModalOpen(true)}
               style={{
@@ -251,8 +276,8 @@ export default function AccountsPage() {
                 gap: 8,
                 borderRadius: 9999,
                 background: "#2563EB",
-                padding: "10px 20px",
-                fontSize: 14,
+                padding: isMobile ? "10px 16px" : "10px 20px",
+                fontSize: isMobile ? 13 : 14,
                 fontWeight: 500,
                 color: "white",
                 cursor: "pointer",
@@ -278,7 +303,7 @@ export default function AccountsPage() {
         >
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#111111", marginBottom: 6 }}>
+              <label style={{ display: "block", fontSize: isMobile ? 12 : 13, fontWeight: 500, color: "#111111", marginBottom: 6 }}>
                 Account Name
               </label>
               <input
@@ -292,7 +317,7 @@ export default function AccountsPage() {
                   border: "1px solid #E5E7EB",
                   background: "white",
                   padding: "0 14px",
-                  fontSize: 14,
+                  fontSize: isMobile ? 13 : 14,
                   color: "#111111",
                   outline: "none",
                   transition: "all 0.15s ease",
@@ -304,10 +329,14 @@ export default function AccountsPage() {
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#111111", marginBottom: 6 }}>
+              <label style={{ display: "block", fontSize: isMobile ? 12 : 13, fontWeight: 500, color: "#111111", marginBottom: 6 }}>
                 Account Type
               </label>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(3, 1fr)",
+                gap: isMobile ? 6 : 8,
+              }}>
                 {accountTypes.map((type) => {
                   const isSelected = form.type === type.value
                   return (
@@ -319,11 +348,11 @@ export default function AccountsPage() {
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
-                        gap: 6,
+                        gap: 4,
                         borderRadius: 12,
                         border: `1px solid ${isSelected ? "#2563EB" : "#E5E7EB"}`,
-                        padding: 12,
-                        fontSize: 12,
+                        padding: isMobile ? 8 : 12,
+                        fontSize: isMobile ? 11 : 12,
                         fontWeight: 500,
                         cursor: "pointer",
                         transition: "all 0.15s ease",
@@ -337,7 +366,7 @@ export default function AccountsPage() {
                         if (!isSelected) e.currentTarget.style.borderColor = "#E5E7EB"
                       }}
                     >
-                      <type.icon style={{ width: 20, height: 20 }} />
+                      <type.icon style={{ width: isMobile ? 18 : 20, height: isMobile ? 18 : 20 }} />
                       {type.label}
                     </button>
                   )
@@ -346,7 +375,7 @@ export default function AccountsPage() {
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#111111", marginBottom: 6 }}>
+              <label style={{ display: "block", fontSize: isMobile ? 12 : 13, fontWeight: 500, color: "#111111", marginBottom: 6 }}>
                 Balance
               </label>
               <input
@@ -361,7 +390,7 @@ export default function AccountsPage() {
                   border: "1px solid #E5E7EB",
                   background: "white",
                   padding: "0 14px",
-                  fontSize: 14,
+                  fontSize: isMobile ? 13 : 14,
                   color: "#111111",
                   outline: "none",
                   transition: "all 0.15s ease",
@@ -372,10 +401,10 @@ export default function AccountsPage() {
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#111111", marginBottom: 6 }}>
+              <label style={{ display: "block", fontSize: isMobile ? 12 : 13, fontWeight: 500, color: "#111111", marginBottom: 6 }}>
                 Color
               </label>
-              <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ display: "flex", gap: isMobile ? 6 : 8, flexWrap: "wrap" }}>
                 {colors.map((color) => {
                   const isSelected = form.color === color
                   return (
@@ -384,8 +413,8 @@ export default function AccountsPage() {
                       type="button"
                       onClick={() => setForm({ ...form, color })}
                       style={{
-                        width: 32,
-                        height: 32,
+                        width: isMobile ? 28 : 32,
+                        height: isMobile ? 28 : 32,
                         borderRadius: "50%",
                         cursor: "pointer",
                         transition: "all 0.15s ease",
@@ -419,7 +448,7 @@ export default function AccountsPage() {
                   borderRadius: 9999,
                   border: "1px solid #E5E7EB",
                   background: "white",
-                  fontSize: 14,
+                  fontSize: isMobile ? 13 : 14,
                   fontWeight: 500,
                   color: "#111111",
                   cursor: "pointer",
@@ -438,7 +467,7 @@ export default function AccountsPage() {
                   borderRadius: 9999,
                   background: "#2563EB",
                   color: "white",
-                  fontSize: 14,
+                  fontSize: isMobile ? 13 : 14,
                   fontWeight: 500,
                   cursor: "pointer",
                   transition: "all 0.15s ease",

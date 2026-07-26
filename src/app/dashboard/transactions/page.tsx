@@ -1,7 +1,6 @@
 "use client"
 
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Plus, Pencil, Trash2, Search } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils"
@@ -33,7 +32,6 @@ interface Category {
 
 export default function TransactionsPage() {
   const { status } = useSession()
-  const router = useRouter()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [accounts, setAccounts] = useState<Account[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -42,6 +40,7 @@ export default function TransactionsPage() {
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
   const [search, setSearch] = useState("")
   const [filterType, setFilterType] = useState("all")
+  const [isMobile, setIsMobile] = useState(false)
   const [form, setForm] = useState({
     amount: "",
     description: "",
@@ -51,15 +50,12 @@ export default function TransactionsPage() {
     categoryId: "",
   })
 
-  const [hoverAdd, setHoverAdd] = useState(false)
-  const [hoverFilterType, setHoverFilterType] = useState<string | null>(null)
-  const [hoverRow, setHoverRow] = useState<string | null>(null)
-  const [hoverEdit, setHoverEdit] = useState<string | null>(null)
-  const [hoverDelete, setHoverDelete] = useState<string | null>(null)
-  const [hoverCancel, setHoverCancel] = useState(false)
-  const [hoverSubmit, setHoverSubmit] = useState(false)
-  const [hoverCatBtn, setHoverCatBtn] = useState<string | null>(null)
-  const [hoverFormType, setHoverFormType] = useState<string | null>(null)
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -99,7 +95,6 @@ export default function TransactionsPage() {
     e.preventDefault()
     const url = editingTx ? `/api/transactions/${editingTx.id}` : "/api/transactions"
     const method = editingTx ? "PUT" : "POST"
-
     try {
       await fetch(url, {
         method,
@@ -108,14 +103,7 @@ export default function TransactionsPage() {
       })
       setModalOpen(false)
       setEditingTx(null)
-      setForm({
-        amount: "",
-        description: "",
-        date: new Date().toISOString().split("T")[0],
-        type: filterType === "all" ? "expense" : filterType,
-        accountId: accounts[0]?.id || "",
-        categoryId: "",
-      })
+      setForm({ amount: "", description: "", date: new Date().toISOString().split("T")[0], type: filterType === "all" ? "expense" : filterType, accountId: accounts[0]?.id || "", categoryId: "" })
       fetchData()
     } catch (err) {
       console.error("Failed to save transaction:", err)
@@ -130,33 +118,22 @@ export default function TransactionsPage() {
 
   const openEdit = (tx: Transaction) => {
     setEditingTx(tx)
-    setForm({
-      amount: tx.amount.toString(),
-      description: tx.description,
-      date: new Date(tx.date).toISOString().split("T")[0],
-      type: tx.type,
-      accountId: tx.accountId,
-      categoryId: tx.categoryId || "",
-    })
+    setForm({ amount: tx.amount.toString(), description: tx.description, date: new Date(tx.date).toISOString().split("T")[0], type: tx.type, accountId: tx.accountId, categoryId: tx.categoryId || "" })
     setModalOpen(true)
   }
 
   const filteredTransactions = transactions.filter((tx) => {
-    const matchesSearch = tx.description
-      .toLowerCase()
-      .includes(search.toLowerCase())
+    const matchesSearch = tx.description.toLowerCase().includes(search.toLowerCase())
     const matchesType = filterType === "all" || tx.type === filterType
     return matchesSearch && matchesType
   })
 
-  const filteredCategories = categories.filter(
-    (cat) => cat.type === form.type
-  )
+  const filteredCategories = categories.filter((cat) => cat.type === form.type)
 
   if (status === "loading" || loading) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "256px" }}>
-        <div style={{ height: "24px", width: "24px", animation: "txSpin 1s linear infinite", borderRadius: "9999px", borderWidth: "2px", borderStyle: "solid", borderColor: "#E5E7EB", borderTopColor: "#2563EB" }} />
+        <div style={{ height: "24px", width: "24px", animation: "spin 1s linear infinite", borderRadius: "9999px", border: "2px solid #E5E7EB", borderTopColor: "#2563EB" }} />
       </div>
     )
   }
@@ -164,50 +141,35 @@ export default function TransactionsPage() {
   return (
     <>
       <style>{`
-        @keyframes txSpin { to { transform: rotate(360deg); } }
-        input::placeholder { color: #9CA3AF; }
-        input:focus { border-color: #2563EB !important; box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
-        select:focus { border-color: #2563EB !important; box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        input::placeholder, select::placeholder { color: #9CA3AF; }
+        input:focus, select:focus { outline: none; border-color: #2563EB !important; box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
       `}</style>
-      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "16px" : "24px" }}>
+        <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", gap: "12px" }}>
           <div>
-            <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em", margin: 0 }}>
-              Transactions
-            </h1>
-            <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>
-              Track your income and expenses
-            </p>
+            <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em", margin: 0 }}>Transactions</h1>
+            <p style={{ fontSize: "14px", color: "#6B7280", marginTop: "2px" }}>Track your income and expenses</p>
           </div>
           <button
             onClick={() => {
               setEditingTx(null)
-              setForm({
-                amount: "",
-                description: "",
-                date: new Date().toISOString().split("T")[0],
-                type: filterType === "all" ? "expense" : filterType,
-                accountId: accounts[0]?.id || "",
-                categoryId: "",
-              })
+              setForm({ amount: "", description: "", date: new Date().toISOString().split("T")[0], type: filterType === "all" ? "expense" : filterType, accountId: accounts[0]?.id || "", categoryId: "" })
               setModalOpen(true)
             }}
-            onMouseEnter={() => setHoverAdd(true)}
-            onMouseLeave={() => setHoverAdd(false)}
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: "8px",
               borderRadius: "9999px",
-              background: hoverAdd ? "#1D4ED8" : "#2563EB",
+              background: "#2563EB",
               padding: "10px 20px",
               fontSize: "14px",
               fontWeight: 500,
               color: "white",
-              transition: "all 0.15s",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
               cursor: "pointer",
               border: "none",
+              flexShrink: 0,
             }}
           >
             <Plus style={{ height: "16px", width: "16px" }} />
@@ -215,52 +177,16 @@ export default function TransactionsPage() {
           </button>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "row", gap: "12px", flexWrap: "wrap" }}>
-          <div style={{ position: "relative", flex: 1, minWidth: "200px" }}>
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: "12px" }}>
+          <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
             <Search style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", height: "16px", width: "16px", color: "#9CA3AF", pointerEvents: "none" }} />
-            <input
-              type="text"
-              placeholder="Search transactions..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              style={{
-                height: "40px",
-                width: "100%",
-                borderRadius: "9999px",
-                border: "1px solid #E5E7EB",
-                background: "white",
-                paddingLeft: "40px",
-                paddingRight: "16px",
-                fontSize: "14px",
-                color: "#111111",
-                outline: "none",
-                transition: "all 0.15s",
-                boxSizing: "border-box" as const,
-              }}
-            />
+            <input type="text" placeholder="Search transactions..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ height: "40px", width: "100%", borderRadius: "9999px", border: "1px solid #E5E7EB", background: "white", paddingLeft: "40px", paddingRight: "16px", fontSize: "14px", color: "#111111", outline: "none", boxSizing: "border-box" as const }} />
           </div>
-          <div style={{ display: "flex", gap: "6px", background: "white", borderRadius: "9999px", padding: "4px", border: "1px solid #E5E7EB" }}>
+          <div style={{ display: "flex", gap: "4px", background: "white", borderRadius: "9999px", padding: "4px", border: "1px solid #E5E7EB", flexShrink: 0 }}>
             {["all", "income", "expense"].map((type) => {
               const isActive = filterType === type
-              const isHovered = hoverFilterType === type
               return (
-                <button
-                  key={type}
-                  onClick={() => setFilterType(type)}
-                  onMouseEnter={() => setHoverFilterType(type)}
-                  onMouseLeave={() => setHoverFilterType(null)}
-                  style={{
-                    borderRadius: "9999px",
-                    padding: "6px 16px",
-                    fontSize: "13px",
-                    fontWeight: 500,
-                    transition: "all 0.15s",
-                    cursor: "pointer",
-                    border: "none",
-                    background: isActive ? "#111111" : "transparent",
-                    color: isActive ? "white" : isHovered ? "#111111" : "#6B7280",
-                  }}
-                >
+                <button key={type} onClick={() => setFilterType(type)} style={{ borderRadius: "9999px", padding: isMobile ? "6px 12px" : "6px 16px", fontSize: "13px", fontWeight: 500, cursor: "pointer", border: "none", background: isActive ? "#111111" : "transparent", color: isActive ? "white" : "#6B7280", flex: isMobile ? 1 : "none", textAlign: "center" as const }}>
                   {type.charAt(0).toUpperCase() + type.slice(1)}
                 </button>
               )
@@ -269,402 +195,154 @@ export default function TransactionsPage() {
         </div>
 
         {filteredTransactions.length > 0 ? (
-          <div style={{ borderRadius: "20px", background: "white", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", overflow: "hidden" }}>
-            <div style={{ overflowX: "auto" as const }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
-                <thead>
-                  <tr style={{ borderBottom: "1px solid #F3F4F6" }}>
-                    <th style={{ textAlign: "left", padding: "12px 24px", fontSize: "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>
-                      Transaction
-                    </th>
-                    <th style={{ textAlign: "left", padding: "12px 24px", fontSize: "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>
-                      Category
-                    </th>
-                    <th style={{ textAlign: "left", padding: "12px 24px", fontSize: "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>
-                      Account
-                    </th>
-                    <th style={{ textAlign: "left", padding: "12px 24px", fontSize: "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>
-                      Date
-                    </th>
-                    <th style={{ textAlign: "right", padding: "12px 24px", fontSize: "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>
-                      Amount
-                    </th>
-                    <th style={{ textAlign: "right", padding: "12px 24px", fontSize: "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredTransactions.map((tx) => (
-                    <tr
-                      key={tx.id}
-                      onMouseEnter={() => setHoverRow(tx.id)}
-                      onMouseLeave={() => setHoverRow(null)}
-                      style={{
-                        borderBottom: "1px solid #F3F4F6",
-                        background: hoverRow === tx.id ? "#F9FAFB" : "white",
-                        transition: "background 0.15s",
-                      }}
-                    >
-                      <td style={{ padding: "14px 24px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                          <div style={{ display: "flex", height: "36px", width: "36px", alignItems: "center", justifyContent: "center", borderRadius: "10px", background: "#F9FAFB", fontSize: "16px" }}>
-                            {tx.category?.icon || "\uD83D\uDCB0"}
-                          </div>
-                          <span style={{ fontSize: "14px", fontWeight: 500, color: "#111111" }}>{tx.description}</span>
-                        </div>
-                      </td>
-                      <td style={{ padding: "14px 24px", fontSize: "13px", color: "#6B7280" }}>
-                        {tx.category?.name || "\u2014"}
-                      </td>
-                      <td style={{ padding: "14px 24px", fontSize: "13px", color: "#6B7280" }}>
-                        {tx.account?.name}
-                      </td>
-                      <td style={{ padding: "14px 24px", fontSize: "13px", color: "#9CA3AF" }}>
-                        {formatDate(tx.date)}
-                      </td>
-                      <td style={{ padding: "14px 24px", textAlign: "right" }}>
-                        <span style={{ fontSize: "14px", fontWeight: 600, color: tx.type === "income" ? "#16A34A" : "#111111" }}>
-                          {tx.type === "income" ? "+" : "-"}
-                          {formatCurrency(tx.amount)}
-                        </span>
-                      </td>
-                      <td style={{ padding: "14px 24px", textAlign: "right" }}>
-                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "2px" }}>
-                          <button
-                            onClick={() => openEdit(tx)}
-                            onMouseEnter={() => setHoverEdit(tx.id)}
-                            onMouseLeave={() => setHoverEdit(null)}
-                            style={{
-                              display: "flex",
-                              height: "28px",
-                              width: "28px",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              borderRadius: "9999px",
-                              background: hoverEdit === tx.id ? "#F3F4F6" : "transparent",
-                              transition: "background 0.15s",
-                              cursor: "pointer",
-                              border: "none",
-                            }}
-                          >
-                            <Pencil style={{ height: "14px", width: "14px", color: "#6B7280" }} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(tx.id)}
-                            onMouseEnter={() => setHoverDelete(tx.id)}
-                            onMouseLeave={() => setHoverDelete(null)}
-                            style={{
-                              display: "flex",
-                              height: "28px",
-                              width: "28px",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              borderRadius: "9999px",
-                              background: hoverDelete === tx.id ? "#FEF2F2" : "transparent",
-                              transition: "background 0.15s",
-                              cursor: "pointer",
-                              border: "none",
-                            }}
-                          >
-                            <Trash2 style={{ height: "14px", width: "14px", color: "#DC2626" }} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          isMobile ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {filteredTransactions.map((tx) => (
+                <div key={tx.id} style={{ borderRadius: "16px", background: "white", padding: "14px 16px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, flex: 1 }}>
+                      <div style={{ height: "36px", width: "36px", borderRadius: "10px", background: "#F9FAFB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", flexShrink: 0 }}>
+                        {tx.category?.icon || "💰"}
+                      </div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <p style={{ fontSize: "14px", fontWeight: 500, color: "#111111", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{tx.description}</p>
+                        <p style={{ fontSize: "11px", color: "#9CA3AF", margin: "2px 0 0 0" }}>{formatDate(tx.date)}</p>
+                      </div>
+                    </div>
+                    <span style={{ fontSize: "15px", fontWeight: 600, color: tx.type === "income" ? "#16A34A" : "#111111", flexShrink: 0, marginLeft: "8px" }}>
+                      {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      {tx.category?.name && <span style={{ fontSize: "11px", color: "#6B7280", background: "#F3F4F6", borderRadius: "6px", padding: "2px 8px" }}>{tx.category.name}</span>}
+                      <span style={{ fontSize: "11px", color: "#6B7280", background: "#F3F4F6", borderRadius: "6px", padding: "2px 8px" }}>{tx.account?.name}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: "4px" }}>
+                      <button onClick={() => openEdit(tx)} style={{ display: "flex", height: "28px", width: "28px", alignItems: "center", justifyContent: "center", borderRadius: "9999px", cursor: "pointer", border: "none", background: "none" }}>
+                        <Pencil style={{ height: "13px", width: "13px", color: "#6B7280" }} />
+                      </button>
+                      <button onClick={() => handleDelete(tx.id)} style={{ display: "flex", height: "28px", width: "28px", alignItems: "center", justifyContent: "center", borderRadius: "9999px", cursor: "pointer", border: "none", background: "none" }}>
+                        <Trash2 style={{ height: "13px", width: "13px", color: "#DC2626" }} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          ) : (
+            <div style={{ borderRadius: "20px", background: "white", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", overflow: "hidden" }}>
+              <div style={{ overflowX: "auto" as const }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid #F3F4F6" }}>
+                      <th style={{ textAlign: "left", padding: "12px 24px", fontSize: "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Transaction</th>
+                      <th style={{ textAlign: "left", padding: "12px 24px", fontSize: "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Category</th>
+                      <th style={{ textAlign: "left", padding: "12px 24px", fontSize: "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Account</th>
+                      <th style={{ textAlign: "left", padding: "12px 24px", fontSize: "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Date</th>
+                      <th style={{ textAlign: "right", padding: "12px 24px", fontSize: "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Amount</th>
+                      <th style={{ textAlign: "right", padding: "12px 24px", fontSize: "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredTransactions.map((tx) => (
+                      <tr key={tx.id} style={{ borderBottom: "1px solid #F3F4F6", transition: "background 0.15s" }}>
+                        <td style={{ padding: "14px 24px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                            <div style={{ display: "flex", height: "36px", width: "36px", alignItems: "center", justifyContent: "center", borderRadius: "10px", background: "#F9FAFB", fontSize: "16px" }}>{tx.category?.icon || "💰"}</div>
+                            <span style={{ fontSize: "14px", fontWeight: 500, color: "#111111" }}>{tx.description}</span>
+                          </div>
+                        </td>
+                        <td style={{ padding: "14px 24px", fontSize: "13px", color: "#6B7280" }}>{tx.category?.name || "—"}</td>
+                        <td style={{ padding: "14px 24px", fontSize: "13px", color: "#6B7280" }}>{tx.account?.name}</td>
+                        <td style={{ padding: "14px 24px", fontSize: "13px", color: "#9CA3AF" }}>{formatDate(tx.date)}</td>
+                        <td style={{ padding: "14px 24px", textAlign: "right" }}>
+                          <span style={{ fontSize: "14px", fontWeight: 600, color: tx.type === "income" ? "#16A34A" : "#111111" }}>
+                            {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+                          </span>
+                        </td>
+                        <td style={{ padding: "14px 24px", textAlign: "right" }}>
+                          <div style={{ display: "flex", justifyContent: "flex-end", gap: "2px" }}>
+                            <button onClick={() => openEdit(tx)} style={{ display: "flex", height: "28px", width: "28px", alignItems: "center", justifyContent: "center", borderRadius: "9999px", cursor: "pointer", border: "none", background: "transparent" }}>
+                              <Pencil style={{ height: "14px", width: "14px", color: "#6B7280" }} />
+                            </button>
+                            <button onClick={() => handleDelete(tx.id)} style={{ display: "flex", height: "28px", width: "28px", alignItems: "center", justifyContent: "center", borderRadius: "9999px", cursor: "pointer", border: "none", background: "transparent" }}>
+                              <Trash2 style={{ height: "14px", width: "14px", color: "#DC2626" }} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )
         ) : (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 0" }}>
             <div style={{ height: "64px", width: "64px", borderRadius: "9999px", background: "#F3F4F6", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}>
               <Search style={{ height: "24px", width: "24px", color: "#D1D5DB" }} />
             </div>
             <p style={{ fontSize: "16px", fontWeight: 500, color: "#111111", marginBottom: "4px" }}>
-              {search || filterType !== "all"
-                ? "No matching transactions"
-                : "No transactions yet"}
+              {search || filterType !== "all" ? "No matching transactions" : "No transactions yet"}
             </p>
             <p style={{ fontSize: "14px", color: "#9CA3AF" }}>
-              {search || filterType !== "all"
-                ? "Try adjusting your filters"
-                : "Add your first transaction to get started"}
+              {search || filterType !== "all" ? "Try adjusting your filters" : "Add your first transaction to get started"}
             </p>
           </div>
         )}
 
-        <Modal
-          open={modalOpen}
-          onClose={() => {
-            setModalOpen(false)
-            setEditingTx(null)
-          }}
-          title={editingTx ? "Edit Transaction" : "Add Transaction"}
-        >
+        <Modal open={modalOpen} onClose={() => { setModalOpen(false); setEditingTx(null) }} title={editingTx ? "Edit Transaction" : "Add Transaction"}>
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <div>
               <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Type</label>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
                 {["expense", "income"].map((type) => {
                   const isActive = form.type === type
-                  const isHovered = hoverFormType === type
-                  let borderColor = "#E5E7EB"
-                  let background = "white"
-                  let textColor = "#6B7280"
-
-                  if (isActive) {
-                    if (type === "income") {
-                      borderColor = "#16A34A"
-                      background = "#F0FDF4"
-                      textColor = "#16A34A"
-                    } else {
-                      borderColor = "#DC2626"
-                      background = "#FEF2F2"
-                      textColor = "#DC2626"
-                    }
-                  } else if (isHovered) {
-                    borderColor = "#D1D5DB"
-                  }
-
                   return (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setForm({ ...form, type, categoryId: "" })}
-                      onMouseEnter={() => setHoverFormType(type)}
-                      onMouseLeave={() => setHoverFormType(null)}
-                      style={{
-                        borderRadius: "12px",
-                        border: `1px solid ${borderColor}`,
-                        padding: "10px",
-                        fontSize: "13px",
-                        fontWeight: 500,
-                        transition: "all 0.15s",
-                        cursor: "pointer",
-                        background,
-                        color: textColor,
-                      }}
-                    >
+                    <button key={type} type="button" onClick={() => setForm({ ...form, type, categoryId: "" })} style={{ borderRadius: "12px", border: `1px solid ${isActive ? (type === "income" ? "#16A34A" : "#DC2626") : "#E5E7EB"}`, padding: "10px", fontSize: "13px", fontWeight: 500, cursor: "pointer", background: isActive ? (type === "income" ? "#F0FDF4" : "#FEF2F2") : "white", color: isActive ? (type === "income" ? "#16A34A" : "#DC2626") : "#6B7280" }}>
                       {type.charAt(0).toUpperCase() + type.slice(1)}
                     </button>
                   )
                 })}
               </div>
             </div>
-
             <div>
               <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Amount</label>
-              <input
-                type="number"
-                step="0.01"
-                value={form.amount}
-                onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                style={{
-                  height: "44px",
-                  width: "100%",
-                  borderRadius: "12px",
-                  border: "1px solid #E5E7EB",
-                  background: "white",
-                  paddingLeft: "14px",
-                  paddingRight: "14px",
-                  fontSize: "14px",
-                  color: "#111111",
-                  outline: "none",
-                  transition: "all 0.15s",
-                  boxSizing: "border-box" as const,
-                }}
-                placeholder="0.00"
-                required
-              />
+              <input type="number" step="0.01" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} style={{ height: "44px", width: "100%", borderRadius: "12px", border: "1px solid #E5E7EB", background: "white", padding: "0 14px", fontSize: "14px", color: "#111111", outline: "none", boxSizing: "border-box" as const }} placeholder="0.00" required />
             </div>
-
             <div>
               <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Description</label>
-              <input
-                type="text"
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                style={{
-                  height: "44px",
-                  width: "100%",
-                  borderRadius: "12px",
-                  border: "1px solid #E5E7EB",
-                  background: "white",
-                  paddingLeft: "14px",
-                  paddingRight: "14px",
-                  fontSize: "14px",
-                  color: "#111111",
-                  outline: "none",
-                  transition: "all 0.15s",
-                  boxSizing: "border-box" as const,
-                }}
-                placeholder="e.g. Coffee at Starbucks"
-                required
-              />
+              <input type="text" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} style={{ height: "44px", width: "100%", borderRadius: "12px", border: "1px solid #E5E7EB", background: "white", padding: "0 14px", fontSize: "14px", color: "#111111", outline: "none", boxSizing: "border-box" as const }} placeholder="e.g. Coffee at Starbucks" required />
             </div>
-
             <div>
               <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Date</label>
-              <input
-                type="date"
-                value={form.date}
-                onChange={(e) => setForm({ ...form, date: e.target.value })}
-                style={{
-                  height: "44px",
-                  width: "100%",
-                  borderRadius: "12px",
-                  border: "1px solid #E5E7EB",
-                  background: "white",
-                  paddingLeft: "14px",
-                  paddingRight: "14px",
-                  fontSize: "14px",
-                  color: "#111111",
-                  outline: "none",
-                  transition: "all 0.15s",
-                  boxSizing: "border-box" as const,
-                }}
-              />
+              <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} style={{ height: "44px", width: "100%", borderRadius: "12px", border: "1px solid #E5E7EB", background: "white", padding: "0 14px", fontSize: "14px", color: "#111111", outline: "none", boxSizing: "border-box" as const }} />
             </div>
-
             <div>
               <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Account</label>
-              <select
-                value={form.accountId}
-                onChange={(e) => setForm({ ...form, accountId: e.target.value })}
-                style={{
-                  height: "44px",
-                  width: "100%",
-                  borderRadius: "12px",
-                  border: "1px solid #E5E7EB",
-                  background: "white",
-                  paddingLeft: "14px",
-                  paddingRight: "40px",
-                  fontSize: "14px",
-                  color: "#111111",
-                  outline: "none",
-                  cursor: "pointer",
-                  WebkitAppearance: "none",
-                  MozAppearance: "none",
-                  appearance: "none",
-                  backgroundImage: "url(\"data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%239CA3AF%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E\")",
-                  backgroundSize: "18px",
-                  backgroundPosition: "right 12px center",
-                  backgroundRepeat: "no-repeat",
-                  transition: "all 0.15s",
-                  boxSizing: "border-box" as const,
-                }}
-                required
-              >
-                {accounts.map((acc) => (
-                  <option key={acc.id} value={acc.id}>
-                    {acc.name}
-                  </option>
-                ))}
+              <select value={form.accountId} onChange={(e) => setForm({ ...form, accountId: e.target.value })} style={{ height: "44px", width: "100%", borderRadius: "12px", border: "1px solid #E5E7EB", background: "white", padding: "0 14px", fontSize: "14px", color: "#111111", outline: "none", cursor: "pointer", boxSizing: "border-box" as const }} required>
+                {accounts.map((acc) => (<option key={acc.id} value={acc.id}>{acc.name}</option>))}
               </select>
             </div>
-
             <div>
               <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Category</label>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", maxHeight: "128px", overflowY: "auto", padding: "2px" }}>
-                <button
-                  type="button"
-                  onClick={() => setForm({ ...form, categoryId: "" })}
-                  onMouseEnter={() => setHoverCatBtn("none")}
-                  onMouseLeave={() => setHoverCatBtn(null)}
-                  style={{
-                    borderRadius: "12px",
-                    border: `1px solid ${!form.categoryId ? "#2563EB" : hoverCatBtn === "none" ? "#D1D5DB" : "#E5E7EB"}`,
-                    background: !form.categoryId ? "#EFF6FF" : "white",
-                    padding: "8px",
-                    fontSize: "12px",
-                    fontWeight: 500,
-                    color: !form.categoryId ? "#2563EB" : "#6B7280",
-                    transition: "all 0.15s",
-                    cursor: "pointer",
-                  }}
-                >
-                  None
-                </button>
+                <button type="button" onClick={() => setForm({ ...form, categoryId: "" })} style={{ borderRadius: "12px", border: `1px solid ${!form.categoryId ? "#2563EB" : "#E5E7EB"}`, background: !form.categoryId ? "#EFF6FF" : "white", padding: "8px", fontSize: "12px", fontWeight: 500, color: !form.categoryId ? "#2563EB" : "#6B7280", cursor: "pointer" }}>None</button>
                 {filteredCategories.map((cat) => {
                   const isSelected = form.categoryId === cat.id
-                  const isHovered = hoverCatBtn === cat.id
                   return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => setForm({ ...form, categoryId: cat.id })}
-                      onMouseEnter={() => setHoverCatBtn(cat.id)}
-                      onMouseLeave={() => setHoverCatBtn(null)}
-                      style={{
-                        borderRadius: "12px",
-                        border: `1px solid ${isSelected ? "#2563EB" : isHovered ? "#D1D5DB" : "#E5E7EB"}`,
-                        background: isSelected ? "#EFF6FF" : "white",
-                        padding: "8px",
-                        fontSize: "12px",
-                        fontWeight: 500,
-                        color: isSelected ? "#2563EB" : "#6B7280",
-                        transition: "all 0.15s",
-                        cursor: "pointer",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap" as const,
-                      }}
-                    >
-                      <span style={{ fontSize: "16px" }}>{cat.icon}</span>
-                      <br />
+                    <button key={cat.id} type="button" onClick={() => setForm({ ...form, categoryId: cat.id })} style={{ borderRadius: "12px", border: `1px solid ${isSelected ? "#2563EB" : "#E5E7EB"}`, background: isSelected ? "#EFF6FF" : "white", padding: "8px", fontSize: "12px", fontWeight: 500, color: isSelected ? "#2563EB" : "#6B7280", cursor: "pointer", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
+                      <span style={{ fontSize: "16px" }}>{cat.icon}</span><br />
                       <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{cat.name}</span>
                     </button>
                   )
                 })}
               </div>
             </div>
-
             <div style={{ display: "flex", gap: "12px", paddingTop: "8px" }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setModalOpen(false)
-                  setEditingTx(null)
-                }}
-                onMouseEnter={() => setHoverCancel(true)}
-                onMouseLeave={() => setHoverCancel(false)}
-                style={{
-                  flex: 1,
-                  height: "44px",
-                  borderRadius: "9999px",
-                  border: "1px solid #E5E7EB",
-                  background: hoverCancel ? "#F9FAFB" : "white",
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#111111",
-                  transition: "all 0.15s",
-                  cursor: "pointer",
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                onMouseEnter={() => setHoverSubmit(true)}
-                onMouseLeave={() => setHoverSubmit(false)}
-                style={{
-                  flex: 1,
-                  height: "44px",
-                  borderRadius: "9999px",
-                  background: hoverSubmit ? "#1D4ED8" : "#2563EB",
-                  color: "white",
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  transition: "all 0.15s",
-                  boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-                  cursor: "pointer",
-                  border: "none",
-                }}
-              >
-                {editingTx ? "Save Changes" : "Add Transaction"}
-              </button>
+              <button type="button" onClick={() => { setModalOpen(false); setEditingTx(null) }} style={{ flex: 1, height: "44px", borderRadius: "9999px", border: "1px solid #E5E7EB", background: "white", fontSize: "14px", fontWeight: 500, color: "#111111", cursor: "pointer" }}>Cancel</button>
+              <button type="submit" style={{ flex: 1, height: "44px", borderRadius: "9999px", background: "#2563EB", color: "white", fontSize: "14px", fontWeight: 500, cursor: "pointer", border: "none" }}>{editingTx ? "Save Changes" : "Add Transaction"}</button>
             </div>
           </form>
         </Modal>

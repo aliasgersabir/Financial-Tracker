@@ -58,6 +58,14 @@ export default function ScenariosPage() {
   const [hoverCancel, setHoverCancel] = useState(false)
   const [hoverSubmit, setHoverSubmit] = useState(false)
   const [inputFocused, setInputFocused] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -174,10 +182,10 @@ export default function ScenariosPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "12px" : "24px" }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", gap: isMobile ? "12px" : "0" }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Scenario Planner</h1>
+          <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Scenario Planner</h1>
           <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>Plan and compare financial scenarios</p>
         </div>
         <div style={{ display: "flex", gap: "8px" }}>
@@ -299,7 +307,7 @@ export default function ScenariosPage() {
       )}
 
       {scenarios.length > 0 ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: isMobile ? "12px" : "16px" }}>
           {scenarios.map((scenario) => {
             const typeConfig = getTypeConfig(scenario.type)
             const isHovered = hoverCard === scenario.id
@@ -311,7 +319,7 @@ export default function ScenariosPage() {
                 onMouseEnter={() => setHoverCard(scenario.id)}
                 onMouseLeave={() => setHoverCard(null)}
                 style={{
-                  background: "white", borderRadius: "20px", padding: "24px",
+                  background: "white", borderRadius: "20px", padding: isMobile ? "16px" : "24px",
                   boxShadow: isHovered ? "0 2px 8px rgba(0,0,0,0.06)" : "0 1px 3px rgba(0,0,0,0.04)",
                   transition: "all 200ms ease",
                   cursor: compareMode ? "pointer" : "default",

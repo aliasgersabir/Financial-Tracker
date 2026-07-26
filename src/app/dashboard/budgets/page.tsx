@@ -86,6 +86,15 @@ export default function BudgetsPage() {
   const [deleteConfirmHover, setDeleteConfirmHover] = useState(false)
   const [deleteCancelHover, setDeleteCancelHover] = useState(false)
 
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640)
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
+
   useEffect(() => {
     if (status === "loading") return
     if (status === "unauthenticated") window.location.href = "/login"
@@ -216,17 +225,23 @@ export default function BudgetsPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "16px" : "24px" }}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes progressFill { from { width: 0%; } }
       `}</style>
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{
+        display: "flex",
+        flexDirection: isMobile ? "column" : "row",
+        alignItems: isMobile ? "stretch" : "center",
+        justifyContent: "space-between",
+        gap: isMobile ? "12px" : undefined,
+      }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Budgets</h1>
-          <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>Plan and track your spending</p>
+          <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Budgets</h1>
+          <p style={{ fontSize: isMobile ? "13px" : "15px", color: "#6B7280", marginTop: "2px" }}>Plan and track your spending</p>
         </div>
         {budget && (
           <button
@@ -238,10 +253,11 @@ export default function BudgetsPage() {
             style={{
               display: "inline-flex",
               alignItems: "center",
+              justifyContent: isMobile ? "center" : undefined,
               gap: "8px",
               borderRadius: "9999px",
               background: addBtnHovered ? "#1D4ED8" : "#2563EB",
-              padding: "10px 20px",
+              padding: isMobile ? "10px 16px" : "10px 20px",
               fontSize: "14px",
               fontWeight: 500,
               color: "white",
@@ -257,12 +273,12 @@ export default function BudgetsPage() {
       </div>
 
       {/* Month/Year Selector */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: isMobile ? "10px" : "16px" }}>
         <button
           onClick={prevMonth}
           style={{
             display: "flex", alignItems: "center", justifyContent: "center",
-            width: "36px", height: "36px", borderRadius: "9999px",
+            width: isMobile ? "32px" : "36px", height: isMobile ? "32px" : "36px", borderRadius: "9999px",
             border: "1px solid #E5E7EB", background: "white", cursor: "pointer",
             transition: "all 150ms ease",
           }}
@@ -272,10 +288,10 @@ export default function BudgetsPage() {
           <ChevronLeft style={{ width: "16px", height: "16px", color: "#6B7280" }} />
         </button>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "18px", fontWeight: 600, color: "#111111" }}>
+          <span style={{ fontSize: isMobile ? "15px" : "18px", fontWeight: 600, color: "#111111" }}>
             {MONTH_NAMES[selectedMonth - 1]}
           </span>
-          <span style={{ fontSize: "18px", fontWeight: 600, color: "#111111" }}>
+          <span style={{ fontSize: isMobile ? "15px" : "18px", fontWeight: 600, color: "#111111" }}>
             {selectedYear}
           </span>
         </div>
@@ -283,7 +299,7 @@ export default function BudgetsPage() {
           onClick={nextMonth}
           style={{
             display: "flex", alignItems: "center", justifyContent: "center",
-            width: "36px", height: "36px", borderRadius: "9999px",
+            width: isMobile ? "32px" : "36px", height: isMobile ? "32px" : "36px", borderRadius: "9999px",
             border: "1px solid #E5E7EB", background: "white", cursor: "pointer",
             transition: "all 150ms ease",
           }}
@@ -296,12 +312,12 @@ export default function BudgetsPage() {
 
       {/* Empty state */}
       {!budget && (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 0" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: isMobile ? "48px 0" : "80px 0" }}>
           <div style={{ width: "64px", height: "64px", borderRadius: "9999px", background: "#F3F4F6", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}>
             <Wallet style={{ width: "24px", height: "24px", color: "#9CA3AF" }} />
           </div>
-          <p style={{ fontSize: "16px", fontWeight: 500, color: "#111111", marginBottom: "4px" }}>No budget for {MONTH_NAMES[selectedMonth - 1]} {selectedYear}</p>
-          <p style={{ fontSize: "14px", color: "#9CA3AF", marginBottom: "24px" }}>Create a budget to start tracking your spending</p>
+          <p style={{ fontSize: isMobile ? "14px" : "16px", fontWeight: 500, color: "#111111", marginBottom: "4px", textAlign: "center" }}>No budget for {MONTH_NAMES[selectedMonth - 1]} {selectedYear}</p>
+          <p style={{ fontSize: isMobile ? "13px" : "14px", color: "#9CA3AF", marginBottom: "24px", textAlign: "center" }}>Create a budget to start tracking your spending</p>
           <button
             onClick={() => setCreateModalOpen(true)}
             onMouseEnter={() => setEmptyAddHovered(true)}
@@ -333,14 +349,14 @@ export default function BudgetsPage() {
           <div style={{
             borderRadius: "20px",
             background: "white",
-            padding: "24px",
+            padding: isMobile ? "16px" : "24px",
             boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
             border: "1px solid #E5E7EB",
           }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
               <div>
-                <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#111111" }}>{budget.name}</h2>
-                <p style={{ fontSize: "13px", color: "#9CA3AF", marginTop: "2px" }}>
+                <h2 style={{ fontSize: isMobile ? "14px" : "16px", fontWeight: 600, color: "#111111" }}>{budget.name}</h2>
+                <p style={{ fontSize: isMobile ? "12px" : "13px", color: "#9CA3AF", marginTop: "2px" }}>
                   {MONTH_NAMES[selectedMonth - 1]} {selectedYear} Overview
                 </p>
               </div>
@@ -359,18 +375,18 @@ export default function BudgetsPage() {
               </button>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr 1fr" : "1fr 1fr 1fr", gap: isMobile ? "8px" : "16px", marginBottom: "20px" }}>
               <div style={{ textAlign: "center" }}>
-                <p style={{ fontSize: "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>Budgeted</p>
-                <p style={{ fontSize: "22px", fontWeight: 700, color: "#111111" }}>{formatCurrency(overview.totalBudgeted)}</p>
+                <p style={{ fontSize: isMobile ? "10px" : "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>Budgeted</p>
+                <p style={{ fontSize: isMobile ? "17px" : "22px", fontWeight: 700, color: "#111111" }}>{formatCurrency(overview.totalBudgeted)}</p>
               </div>
               <div style={{ textAlign: "center" }}>
-                <p style={{ fontSize: "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>Spent</p>
-                <p style={{ fontSize: "22px", fontWeight: 700, color: "#DC2626" }}>{formatCurrency(overview.totalSpent)}</p>
+                <p style={{ fontSize: isMobile ? "10px" : "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>Spent</p>
+                <p style={{ fontSize: isMobile ? "17px" : "22px", fontWeight: 700, color: "#DC2626" }}>{formatCurrency(overview.totalSpent)}</p>
               </div>
               <div style={{ textAlign: "center" }}>
-                <p style={{ fontSize: "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>Remaining</p>
-                <p style={{ fontSize: "22px", fontWeight: 700, color: overview.totalRemaining >= 0 ? "#16A34A" : "#DC2626" }}>
+                <p style={{ fontSize: isMobile ? "10px" : "12px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>Remaining</p>
+                <p style={{ fontSize: isMobile ? "17px" : "22px", fontWeight: 700, color: overview.totalRemaining >= 0 ? "#16A34A" : "#DC2626" }}>
                   {formatCurrency(overview.totalRemaining)}
                 </p>
               </div>
@@ -379,8 +395,8 @@ export default function BudgetsPage() {
             {/* Total progress bar */}
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                <span style={{ fontSize: "13px", color: "#6B7280" }}>Overall Progress</span>
-                <span style={{ fontSize: "13px", fontWeight: 500, color: "#111111" }}>
+                <span style={{ fontSize: isMobile ? "12px" : "13px", color: "#6B7280" }}>Overall Progress</span>
+                <span style={{ fontSize: isMobile ? "12px" : "13px", fontWeight: 500, color: "#111111" }}>
                   {overview.totalBudgeted > 0 ? Math.round((overview.totalSpent / overview.totalBudgeted) * 100) : 0}%
                 </span>
               </div>
@@ -406,7 +422,11 @@ export default function BudgetsPage() {
 
           {/* Category Cards Grid */}
           {overview.items.length > 0 ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px" }}>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(280px, 1fr))",
+              gap: isMobile ? "10px" : "12px",
+            }}>
               {overview.items.map((item) => {
                 const isHovered = hoveredCard === item.id
                 const statusColor = getStatusColor(item.status)
@@ -418,30 +438,30 @@ export default function BudgetsPage() {
                     style={{
                       borderRadius: "16px",
                       background: "white",
-                      padding: "16px",
+                      padding: isMobile ? "12px" : "16px",
                       boxShadow: isHovered ? "0 2px 8px rgba(0,0,0,0.06)" : "0 1px 3px rgba(0,0,0,0.04)",
                       transition: "all 200ms ease",
                       position: "relative",
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "12px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: isMobile ? "8px" : "10px" }}>
                         <div
                           style={{
-                            display: "flex", width: "40px", height: "40px", alignItems: "center", justifyContent: "center",
-                            borderRadius: "10px", fontSize: "18px", backgroundColor: item.category.color + "15",
+                            display: "flex", width: isMobile ? "36px" : "40px", height: isMobile ? "36px" : "40px", alignItems: "center", justifyContent: "center",
+                            borderRadius: "10px", fontSize: isMobile ? "16px" : "18px", backgroundColor: item.category.color + "15",
                           }}
                         >
                           {item.category.icon}
                         </div>
                         <div>
-                          <p style={{ fontSize: "14px", fontWeight: 500, color: "#111111" }}>{item.category.name}</p>
-                          <p style={{ fontSize: "12px", color: "#9CA3AF" }}>
+                          <p style={{ fontSize: isMobile ? "13px" : "14px", fontWeight: 500, color: "#111111" }}>{item.category.name}</p>
+                          <p style={{ fontSize: isMobile ? "11px" : "12px", color: "#9CA3AF" }}>
                             {formatCurrency(item.spent)} of {formatCurrency(item.budgeted)}
                           </p>
                         </div>
                       </div>
-                      <div style={{ display: "flex", gap: "2px", opacity: isHovered ? 1 : 0, transition: "opacity 150ms ease" }}>
+                      <div style={{ display: "flex", gap: "2px", opacity: isMobile ? 1 : (isHovered ? 1 : 0), transition: "opacity 150ms ease" }}>
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
@@ -647,7 +667,7 @@ export default function BudgetsPage() {
               Select Category
             </label>
             {availableCategories.length > 0 ? (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", maxHeight: "200px", overflowY: "auto", padding: "2px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(4, 1fr)", gap: "8px", maxHeight: "200px", overflowY: "auto", padding: "2px" }}>
                 {availableCategories.map((cat) => {
                   const isSelected = newItem.categoryId === cat.id
                   const isHover = selectedCatHover === cat.id
@@ -660,13 +680,13 @@ export default function BudgetsPage() {
                       onMouseLeave={() => setSelectedCatHover(null)}
                       style={{
                         display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
-                        padding: "10px 4px", borderRadius: "12px",
+                        padding: isMobile ? "8px 4px" : "10px 4px", borderRadius: "12px",
                         border: isSelected ? `2px solid ${cat.color}` : "2px solid transparent",
                         background: isSelected ? cat.color + "15" : isHover ? "#F3F4F6" : "#F9FAFB",
                         cursor: "pointer", transition: "all 150ms ease",
                       }}
                     >
-                      <span style={{ fontSize: "18px" }}>{cat.icon}</span>
+                      <span style={{ fontSize: isMobile ? "16px" : "18px" }}>{cat.icon}</span>
                       <span style={{ fontSize: "11px", fontWeight: 500, color: "#111111", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" }}>
                         {cat.name}
                       </span>

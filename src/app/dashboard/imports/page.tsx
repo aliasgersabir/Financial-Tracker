@@ -69,6 +69,14 @@ export default function ImportsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const [hoverStates, setHoverStates] = useState<Record<string, boolean>>({})
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -226,18 +234,18 @@ export default function ImportsPage() {
   const dupCount = previewRows.filter(r => r.status === "duplicate").length
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "12px" : 24 }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", gap: isMobile ? "12px" : "0" }}>
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Statement Import</h1>
+          <h1 style={{ fontSize: isMobile ? "22px" : 28, fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Statement Import</h1>
           <p style={{ fontSize: 15, color: "#6B7280", marginTop: 2 }}>Import transactions from bank CSV files</p>
         </div>
       </div>
 
       {/* Upload Section */}
-      <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+      <div style={{ background: "white", borderRadius: 20, padding: isMobile ? "16px" : 24, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
         <div
           onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
           onDragLeave={() => setDragOver(false)}
@@ -246,7 +254,7 @@ export default function ImportsPage() {
           style={{
             border: `2px dashed ${dragOver ? "#2563EB" : "#E5E7EB"}`,
             borderRadius: 16,
-            padding: "40px 24px",
+            padding: isMobile ? "24px 16px" : "40px 24px",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -289,7 +297,7 @@ export default function ImportsPage() {
           )}
         </div>
 
-        <div style={{ display: "flex", gap: 12, marginTop: 16, alignItems: "flex-end" }}>
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 12, marginTop: 16, alignItems: isMobile ? "stretch" : "flex-end" }}>
           <div style={{ flex: 1 }}>
             <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#111111", marginBottom: 6 }}>
               Target Account
@@ -358,8 +366,8 @@ export default function ImportsPage() {
 
       {/* Active Import Preview */}
       {activeJob && activeJob.status === "preview" && (
-        <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <div style={{ background: "white", borderRadius: 20, padding: isMobile ? "16px" : 24, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", gap: isMobile ? "12px" : "0", marginBottom: 20 }}>
             <div>
               <h2 style={{ fontSize: 18, fontWeight: 600, color: "#111111" }}>{activeJob.fileName}</h2>
               <p style={{ fontSize: 13, color: "#6B7280", marginTop: 2 }}>Preview — review rows before importing</p>
@@ -406,7 +414,7 @@ export default function ImportsPage() {
           </div>
 
           {/* Summary Cards */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
             {[
               { label: "Total Rows", value: previewRows.length, color: "#111111" },
               { label: "New", value: newCount, color: "#2563EB" },
@@ -543,7 +551,7 @@ export default function ImportsPage() {
                 key={job.id}
                 style={{
                   display: "flex", alignItems: "center", justifyContent: "space-between",
-                  background: "white", borderRadius: 16, padding: "14px 20px",
+                  background: "white", borderRadius: 16, padding: isMobile ? "12px" : "14px 20px",
                   boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
                   cursor: job.status === "preview" ? "pointer" : "default",
                   transition: "box-shadow 150ms ease",
@@ -560,7 +568,7 @@ export default function ImportsPage() {
                     </p>
                   </div>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: isMobile ? "12px" : 20, flexShrink: 0 }}>
                   <div style={{ display: "flex", gap: 16, fontSize: 12, color: "#6B7280" }}>
                     <span>{job.totalRows} rows</span>
                     {job.importedRows > 0 && <span style={{ color: "#16A34A" }}>{job.importedRows} imported</span>}

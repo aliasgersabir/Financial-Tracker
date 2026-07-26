@@ -25,6 +25,14 @@ export default function InsightsPage() {
   const [loading, setLoading] = useState(true)
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
   const [hoverBtn, setHoverBtn] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -99,14 +107,14 @@ export default function InsightsPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "12px" : "24px" }}>
       <div>
-        <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>AI Insights</h1>
+        <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>AI Insights</h1>
         <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>Personalized financial analysis</p>
       </div>
 
       {insights.length > 0 ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: isMobile ? "12px" : "16px" }}>
           {insights.map((insight) => {
             const pConfig = getPriorityConfig(insight.priority)
             const isHovered = hoveredCard === insight.id
@@ -118,7 +126,7 @@ export default function InsightsPage() {
                 style={{
                   background: "white",
                   borderRadius: "20px",
-                  padding: "24px",
+                  padding: isMobile ? "16px" : "24px",
                   boxShadow: isHovered ? "0 2px 8px rgba(0,0,0,0.06)" : "0 1px 3px rgba(0,0,0,0.04)",
                   border: insight.read ? "1px solid #F3F4F6" : "1px solid #DBEAFE",
                   transition: "all 200ms ease",
@@ -137,7 +145,7 @@ export default function InsightsPage() {
                     </div>
                     <div>
                       <p style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>{insight.title}</p>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px", flexWrap: "wrap" }}>
                         <span style={{
                           display: "inline-flex", alignItems: "center", gap: "4px",
                           fontSize: "11px", fontWeight: 500, padding: "2px 8px",
@@ -213,7 +221,7 @@ export default function InsightsPage() {
       ) : (
         <div style={{
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-          padding: "80px 0", background: "white", borderRadius: "20px",
+          padding: isMobile ? "40px 16px" : "80px 0", background: "white", borderRadius: "20px",
           boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
         }}>
           <div style={{

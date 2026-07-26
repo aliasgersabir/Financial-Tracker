@@ -51,6 +51,14 @@ export default function CategoriesPage() {
   const [hoveredColor, setHoveredColor] = useState<string | null>(null)
   const [emptyAddHovered, setEmptyAddHovered] = useState(false)
   const [inputFocused, setInputFocused] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640)
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -121,13 +129,13 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "16px" : "24px", padding: isMobile ? "0 4px" : undefined }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: isMobile ? undefined : "space-between", gap: isMobile ? "12px" : undefined }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Categories</h1>
-          <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>Organize your transactions</p>
+          <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Categories</h1>
+          <p style={{ fontSize: isMobile ? "13px" : "15px", color: "#6B7280", marginTop: "2px" }}>Organize your transactions</p>
         </div>
         <button
           onClick={() => {
@@ -142,11 +150,12 @@ export default function CategoriesPage() {
           style={{
             display: "inline-flex",
             alignItems: "center",
+            justifyContent: isMobile ? "center" : undefined,
             gap: "8px",
             borderRadius: "9999px",
             background: addBtnHovered ? "#1D4ED8" : "#2563EB",
-            padding: "10px 20px",
-            fontSize: "14px",
+            padding: isMobile ? "10px 16px" : "10px 20px",
+            fontSize: isMobile ? "13px" : "14px",
             fontWeight: 500,
             color: "white",
             transition: "all 150ms ease",
@@ -159,7 +168,7 @@ export default function CategoriesPage() {
         </button>
       </div>
 
-      <div style={{ display: "flex", gap: "6px", background: "white", borderRadius: "9999px", padding: "4px", border: "1px solid #E5E7EB", width: "fit-content" }}>
+      <div style={{ display: "flex", gap: "6px", background: "white", borderRadius: "9999px", padding: "4px", border: "1px solid #E5E7EB", width: isMobile ? "100%" : "fit-content", overflowX: isMobile ? "auto" : undefined }}>
         {["all", "expense", "income"].map((type) => {
           const isActive = filterType === type
           const isHovered = hoveredFilter === type
@@ -171,18 +180,19 @@ export default function CategoriesPage() {
               onMouseLeave={() => setHoveredFilter(null)}
               style={{
                 borderRadius: "9999px",
-                padding: "6px 16px",
-                fontSize: "13px",
+                padding: isMobile ? "6px 12px" : "6px 16px",
+                fontSize: isMobile ? "12px" : "13px",
                 fontWeight: 500,
                 transition: "all 150ms ease",
                 cursor: "pointer",
                 background: isActive ? "#111111" : "transparent",
                 color: isActive ? "white" : isHovered ? "#111111" : "#6B7280",
+                flexShrink: 0,
               }}
             >
               {type.charAt(0).toUpperCase() + type.slice(1)}
               {type !== "all" && (
-                <span style={{ marginLeft: "6px", fontSize: "11px", opacity: 0.6 }}>
+                <span style={{ marginLeft: "6px", fontSize: isMobile ? "10px" : "11px", opacity: 0.6 }}>
                   ({categories.filter((c) => c.type === type).length})
                 </span>
               )}
@@ -192,14 +202,14 @@ export default function CategoriesPage() {
       </div>
 
       {filteredCategories.length > 0 ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "20px" : "32px" }}>
           {(filterType === "all" || filterType === "expense") &&
             expenseCategories.length > 0 && (
               <div>
-                <h2 style={{ fontSize: "13px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>
+                <h2 style={{ fontSize: isMobile ? "11px" : "13px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>
                   Expense
                 </h2>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "12px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(5, 1fr)", gap: isMobile ? "8px" : "12px" }}>
                   {expenseCategories.map((cat) => (
                     <div
                       key={cat.id}
@@ -208,17 +218,17 @@ export default function CategoriesPage() {
                       onClick={() => openEdit(cat)}
                       style={{
                         position: "relative",
-                        borderRadius: "16px",
+                        borderRadius: isMobile ? "12px" : "16px",
                         background: "white",
-                        padding: "16px",
+                        padding: isMobile ? "10px" : "16px",
                         boxShadow: hoveredCard === cat.id ? "0 2px 8px rgba(0,0,0,0.06)" : "0 1px 3px rgba(0,0,0,0.04)",
                         transition: "all 200ms ease",
                         cursor: "pointer",
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: isMobile ? "8px" : "12px" }}>
                         <div
-                          style={{ display: "flex", width: "40px", height: "40px", alignItems: "center", justifyContent: "center", borderRadius: "10px", fontSize: "18px", backgroundColor: cat.color + "15" }}
+                          style={{ display: "flex", width: isMobile ? "32px" : "40px", height: isMobile ? "32px" : "40px", alignItems: "center", justifyContent: "center", borderRadius: isMobile ? "8px" : "10px", fontSize: isMobile ? "14px" : "18px", backgroundColor: cat.color + "15" }}
                         >
                           {cat.icon}
                         </div>
@@ -267,7 +277,7 @@ export default function CategoriesPage() {
                           </button>
                         </div>
                       </div>
-                      <p style={{ fontSize: "13px", fontWeight: 500, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cat.name}</p>
+                      <p style={{ fontSize: isMobile ? "11px" : "13px", fontWeight: 500, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cat.name}</p>
                     </div>
                   ))}
                 </div>
@@ -277,10 +287,10 @@ export default function CategoriesPage() {
           {(filterType === "all" || filterType === "income") &&
             incomeCategories.length > 0 && (
               <div>
-                <h2 style={{ fontSize: "13px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>
+                <h2 style={{ fontSize: isMobile ? "11px" : "13px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>
                   Income
                 </h2>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "12px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(5, 1fr)", gap: isMobile ? "8px" : "12px" }}>
                   {incomeCategories.map((cat) => (
                     <div
                       key={cat.id}
@@ -289,17 +299,17 @@ export default function CategoriesPage() {
                       onClick={() => openEdit(cat)}
                       style={{
                         position: "relative",
-                        borderRadius: "16px",
+                        borderRadius: isMobile ? "12px" : "16px",
                         background: "white",
-                        padding: "16px",
+                        padding: isMobile ? "10px" : "16px",
                         boxShadow: hoveredCard === cat.id ? "0 2px 8px rgba(0,0,0,0.06)" : "0 1px 3px rgba(0,0,0,0.04)",
                         transition: "all 200ms ease",
                         cursor: "pointer",
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: isMobile ? "8px" : "12px" }}>
                         <div
-                          style={{ display: "flex", width: "40px", height: "40px", alignItems: "center", justifyContent: "center", borderRadius: "10px", fontSize: "18px", backgroundColor: cat.color + "15" }}
+                          style={{ display: "flex", width: isMobile ? "32px" : "40px", height: isMobile ? "32px" : "40px", alignItems: "center", justifyContent: "center", borderRadius: isMobile ? "8px" : "10px", fontSize: isMobile ? "14px" : "18px", backgroundColor: cat.color + "15" }}
                         >
                           {cat.icon}
                         </div>
@@ -348,7 +358,7 @@ export default function CategoriesPage() {
                           </button>
                         </div>
                       </div>
-                      <p style={{ fontSize: "13px", fontWeight: 500, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cat.name}</p>
+                      <p style={{ fontSize: isMobile ? "11px" : "13px", fontWeight: 500, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cat.name}</p>
                     </div>
                   ))}
                 </div>
@@ -356,12 +366,12 @@ export default function CategoriesPage() {
             )}
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 0" }}>
-          <div style={{ width: "64px", height: "64px", borderRadius: "9999px", background: "#F3F4F6", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}>
-            <span style={{ fontSize: "24px" }}>🏷️</span>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: isMobile ? "40px 0" : "80px 0" }}>
+          <div style={{ width: isMobile ? "48px" : "64px", height: isMobile ? "48px" : "64px", borderRadius: "9999px", background: "#F3F4F6", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}>
+            <span style={{ fontSize: isMobile ? "18px" : "24px" }}>🏷️</span>
           </div>
-          <p style={{ fontSize: "16px", fontWeight: 500, color: "#111111", marginBottom: "4px" }}>No categories yet</p>
-          <p style={{ fontSize: "14px", color: "#9CA3AF", marginBottom: "24px" }}>Add categories to organize your transactions</p>
+          <p style={{ fontSize: isMobile ? "14px" : "16px", fontWeight: 500, color: "#111111", marginBottom: "4px" }}>No categories yet</p>
+          <p style={{ fontSize: isMobile ? "12px" : "14px", color: "#9CA3AF", marginBottom: "24px" }}>Add categories to organize your transactions</p>
           <button
             onClick={() => {
               setForm({ name: "", type: filterType === "all" ? "expense" : filterType, icon: "📦", color: "#2563EB" })
@@ -375,8 +385,8 @@ export default function CategoriesPage() {
               gap: "8px",
               borderRadius: "9999px",
               background: emptyAddHovered ? "#1D4ED8" : "#2563EB",
-              padding: "10px 20px",
-              fontSize: "14px",
+              padding: isMobile ? "10px 16px" : "10px 20px",
+              fontSize: isMobile ? "13px" : "14px",
               fontWeight: 500,
               color: "white",
               transition: "all 150ms ease",
@@ -420,6 +430,7 @@ export default function CategoriesPage() {
                 outline: "none",
                 transition: "all 150ms ease",
                 boxShadow: inputFocused ? "0 0 0 2px rgba(37,99,235,0.1)" : "none",
+                boxSizing: "border-box",
               }}
               placeholder="e.g. Groceries"
               required
@@ -464,7 +475,7 @@ export default function CategoriesPage() {
 
           <div>
             <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Icon</label>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: "6px", maxHeight: "128px", overflowY: "auto", padding: "2px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(6, 1fr)" : "repeat(10, 1fr)", gap: "6px", maxHeight: "128px", overflowY: "auto", padding: "2px" }}>
               {emojiIcons.map((emoji) => {
                 const isSelected = form.icon === emoji
                 const isHovered = hoveredIcon === emoji
@@ -477,12 +488,12 @@ export default function CategoriesPage() {
                     onMouseLeave={() => setHoveredIcon(null)}
                     style={{
                       display: "flex",
-                      width: "36px",
-                      height: "36px",
+                      width: isMobile ? "32px" : "36px",
+                      height: isMobile ? "32px" : "36px",
                       alignItems: "center",
                       justifyContent: "center",
                       borderRadius: "10px",
-                      fontSize: "16px",
+                      fontSize: isMobile ? "14px" : "16px",
                       transition: "all 150ms ease",
                       cursor: "pointer",
                       background: isSelected ? "#EFF6FF" : isHovered ? "#F3F4F6" : "transparent",
@@ -499,7 +510,7 @@ export default function CategoriesPage() {
 
           <div>
             <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Color</label>
-            <div style={{ display: "flex", gap: "8px" }}>
+            <div style={{ display: "flex", gap: isMobile ? "6px" : "8px", flexWrap: "wrap" }}>
               {colors.map((color) => {
                 const isSelected = form.color === color
                 const isHovered = hoveredColor === color
@@ -511,8 +522,8 @@ export default function CategoriesPage() {
                     onMouseEnter={() => setHoveredColor(color)}
                     onMouseLeave={() => setHoveredColor(null)}
                     style={{
-                      width: "32px",
-                      height: "32px",
+                      width: isMobile ? "28px" : "32px",
+                      height: isMobile ? "28px" : "32px",
                       borderRadius: "9999px",
                       transition: "all 150ms ease",
                       cursor: "pointer",

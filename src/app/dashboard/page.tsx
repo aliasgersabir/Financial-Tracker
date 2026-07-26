@@ -11,7 +11,6 @@ import {
   Plus,
   Sparkles,
   Target,
-  Receipt,
   CreditCard,
   MessageCircle,
   BarChart3,
@@ -26,8 +25,6 @@ import {
 } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   Tooltip,
@@ -121,40 +118,11 @@ const CircularProgress = ({ score, size = 120 }: { score: number; size?: number 
   return (
     <div style={{ position: "relative", width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="#F3F4F6"
-          strokeWidth="8"
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth="8"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          style={{ transition: "stroke-dashoffset 1s ease" }}
-        />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#F3F4F6" strokeWidth="8" />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth="8" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset} style={{ transition: "stroke-dashoffset 1s ease" }} />
       </svg>
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <span style={{ fontSize: "28px", fontWeight: 700, color: "#111111", lineHeight: 1 }}>
-          {score}
-        </span>
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <span style={{ fontSize: "28px", fontWeight: 700, color: "#111111", lineHeight: 1 }}>{score}</span>
         <span style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "2px" }}>/ 100</span>
       </div>
     </div>
@@ -171,21 +139,25 @@ export default function DashboardPage() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [cashFlow, setCashFlow] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [authChecked, setAuthChecked] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
     if (status === "unauthenticated") {
       window.location.href = "/login"
-    } else {
-      setAuthChecked(true)
     }
   }, [status])
 
   useEffect(() => {
     if (status === "authenticated") {
       fetch("/api/health?migrate=true").catch(() => {})
-
       fetch("/api/stats").then((r) => r.json()).then((data) => {
         setStats(data)
       }).catch(() => setStats({
@@ -216,16 +188,7 @@ export default function DashboardPage() {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "256px" }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
-          <div
-            style={{
-              height: "24px",
-              width: "24px",
-              animation: "spin 1s linear infinite",
-              borderRadius: "9999px",
-              border: "2px solid #E5E7EB",
-              borderTopColor: "#2563EB",
-            }}
-          />
+          <div style={{ height: "24px", width: "24px", animation: "spin 1s linear infinite", borderRadius: "9999px", border: "2px solid #E5E7EB", borderTopColor: "#2563EB" }} />
           <p style={{ fontSize: "13px", color: "#9CA3AF" }}>Loading your dashboard...</p>
         </div>
       </div>
@@ -264,94 +227,73 @@ export default function DashboardPage() {
     <>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
-      <div style={{ display: "flex", flexDirection: "column", gap: "24px", maxWidth: "1400px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px", maxWidth: "1400px" }}>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", gap: "12px" }}>
           <div>
-            <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em", margin: 0 }}>
+            <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em", margin: 0 }}>
               {greeting()}, {session?.user?.name?.split(" ")[0]}
             </h1>
-            <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "4px" }}>{today}</p>
+            <p style={{ fontSize: "14px", color: "#6B7280", marginTop: "4px" }}>{today}</p>
           </div>
-          <div style={{ display: "flex", gap: "8px" }}>
-            <Link
-              href="/dashboard/transactions"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                borderRadius: "9999px",
-                background: "#2563EB",
-                padding: "10px 20px",
-                fontSize: "14px",
-                fontWeight: 500,
-                color: "white",
-                transition: "all 0.15s",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-                textDecoration: "none",
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "#1D4ED8" }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "#2563EB" }}
-            >
-              <Plus style={{ height: "16px", width: "16px" }} />
-              Add Transaction
-            </Link>
-          </div>
+          <Link
+            href="/dashboard/transactions"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              borderRadius: "9999px",
+              background: "#2563EB",
+              padding: "10px 20px",
+              fontSize: "14px",
+              fontWeight: 500,
+              color: "white",
+              transition: "all 0.15s",
+              boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+              textDecoration: "none",
+              flexShrink: 0,
+            }}
+          >
+            <Plus style={{ height: "16px", width: "16px" }} />
+            Add Transaction
+          </Link>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: isMobile ? "10px" : "16px" }}>
           {[
-            { title: "Total Balance", value: formatCurrency(stats.totalBalance), icon: Wallet, iconBg: "#EFF6FF", iconColor: "#2563EB" },
-            { title: "Income This Month", value: formatCurrency(stats.monthlyIncome), icon: TrendingUp, iconBg: "#F0FDF4", iconColor: "#16A34A" },
-            { title: "Expenses This Month", value: formatCurrency(stats.monthlyExpenses), icon: TrendingDown, iconBg: "#FEF2F2", iconColor: "#DC2626" },
-            { title: "Net Cash Flow", value: formatCurrency(netCashFlow), icon: ArrowLeftRight, iconBg: netCashFlow >= 0 ? "#F0FDF4" : "#FEF2F2", iconColor: netCashFlow >= 0 ? "#16A34A" : "#DC2626" },
+            { title: "Balance", value: formatCurrency(stats.totalBalance), icon: Wallet, iconBg: "#EFF6FF", iconColor: "#2563EB" },
+            { title: "Income", value: formatCurrency(stats.monthlyIncome), icon: TrendingUp, iconBg: "#F0FDF4", iconColor: "#16A34A" },
+            { title: "Expenses", value: formatCurrency(stats.monthlyExpenses), icon: TrendingDown, iconBg: "#FEF2F2", iconColor: "#DC2626" },
+            { title: "Net Flow", value: formatCurrency(netCashFlow), icon: ArrowLeftRight, iconBg: netCashFlow >= 0 ? "#F0FDF4" : "#FEF2F2", iconColor: netCashFlow >= 0 ? "#16A34A" : "#DC2626" },
           ].map((card) => (
             <div
               key={card.title}
               style={{
-                borderRadius: "20px",
+                borderRadius: isMobile ? "16px" : "20px",
                 background: "white",
-                padding: "20px",
+                padding: isMobile ? "14px" : "20px",
                 boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-                transition: "box-shadow 0.2s",
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)" }}
-              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)" }}
             >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
-                <span style={{ fontSize: "13px", fontWeight: 500, color: "#6B7280" }}>{card.title}</span>
-                <div style={{ display: "flex", height: "36px", width: "36px", alignItems: "center", justifyContent: "center", borderRadius: "10px", background: card.iconBg }}>
-                  <card.icon style={{ height: "18px", width: "18px", color: card.iconColor }} />
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+                <span style={{ fontSize: "12px", fontWeight: 500, color: "#6B7280" }}>{card.title}</span>
+                <div style={{ display: "flex", height: "32px", width: "32px", alignItems: "center", justifyContent: "center", borderRadius: "10px", background: card.iconBg }}>
+                  <card.icon style={{ height: "16px", width: "16px", color: card.iconColor }} />
                 </div>
               </div>
-              <p style={{ fontSize: "22px", fontWeight: 600, color: "#111111", letterSpacing: "-0.025em", margin: 0 }}>{card.value}</p>
+              <p style={{ fontSize: isMobile ? "18px" : "22px", fontWeight: 600, color: "#111111", letterSpacing: "-0.025em", margin: 0 }}>{card.value}</p>
             </div>
           ))}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "16px" }}>
-          <div
-            style={{
-              borderRadius: "20px",
-              background: "white",
-              padding: "24px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "12px",
-            }}
-          >
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 2fr", gap: "16px" }}>
+          <div style={{ borderRadius: "20px", background: "white", padding: isMobile ? "20px" : "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
             <div style={{ fontSize: "13px", fontWeight: 500, color: "#6B7280" }}>Financial Health</div>
             {healthScore ? (
               <>
-                <CircularProgress score={healthScore.score} />
-                <span style={{ fontSize: "14px", fontWeight: 600, color: getHealthColor(healthScore.score) }}>
-                  {getHealthLabel(healthScore.score)}
-                </span>
+                <CircularProgress score={healthScore.score} size={isMobile ? 100 : 120} />
+                <span style={{ fontSize: "14px", fontWeight: 600, color: getHealthColor(healthScore.score) }}>{getHealthLabel(healthScore.score)}</span>
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%", marginTop: "8px" }}>
                   {[
                     { label: "Savings", score: healthScore.breakdown.savings.score, max: healthScore.breakdown.savings.max },
@@ -377,75 +319,60 @@ export default function DashboardPage() {
             )}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-            <div style={{ gridColumn: "span 2" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
                 <div style={{ height: "24px", width: "24px", borderRadius: "6px", background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Sparkles style={{ height: "14px", width: "14px", color: "#2563EB" }} />
                 </div>
                 <span style={{ fontSize: "15px", fontWeight: 600, color: "#111111" }}>AI Insights</span>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
-                {insights.length > 0 ? insights.slice(0, 3).map((insight) => (
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: "10px" }}>
+                {insights.length > 0 ? insights.slice(0, isMobile ? 2 : 3).map((insight) => (
                   <div
                     key={insight.id}
                     style={{
-                      borderRadius: "16px",
+                      borderRadius: "14px",
                       background: insight.priority === "high" ? "#FEF2F2" : insight.priority === "medium" ? "#FFFBEB" : "#F0FDF4",
                       border: `1px solid ${insight.priority === "high" ? "#FECACA" : insight.priority === "medium" ? "#FEF3C7" : "#BBF7D0"}`,
-                      padding: "16px",
+                      padding: isMobile ? "12px" : "16px",
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
                       <Lightbulb style={{ height: "14px", width: "14px", color: insight.priority === "high" ? "#DC2626" : insight.priority === "medium" ? "#F59E0B" : "#16A34A" }} />
                       <span style={{ fontSize: "13px", fontWeight: 600, color: "#111111" }}>{insight.title}</span>
                     </div>
-                    <p style={{ fontSize: "12px", color: "#6B7280", margin: 0, lineHeight: 1.5 }}>
-                      {insight.explanation}
-                    </p>
+                    <p style={{ fontSize: "12px", color: "#6B7280", margin: 0, lineHeight: 1.5 }}>{insight.explanation}</p>
                   </div>
                 )) : (
                   <>
-                    <div style={{ borderRadius: "16px", background: "#F0FDF4", border: "1px solid #BBF7D0", padding: "16px" }}>
+                    <div style={{ borderRadius: "14px", background: "#F0FDF4", border: "1px solid #BBF7D0", padding: "12px" }}>
                       <p style={{ fontSize: "13px", fontWeight: 600, color: "#16A34A", margin: 0 }}>No overspending detected</p>
-                      <p style={{ fontSize: "12px", color: "#6B7280", marginTop: "4px", margin: "4px 0 0 0" }}>Your spending looks healthy this month.</p>
+                      <p style={{ fontSize: "12px", color: "#6B7280", marginTop: "4px" }}>Your spending looks healthy this month.</p>
                     </div>
-                    <div style={{ borderRadius: "16px", background: "#FFFBEB", border: "1px solid #FEF3C7", padding: "16px" }}>
+                    <div style={{ borderRadius: "14px", background: "#FFFBEB", border: "1px solid #FEF3C7", padding: "12px" }}>
                       <p style={{ fontSize: "13px", fontWeight: 600, color: "#F59E0B", margin: 0 }}>Keep tracking</p>
-                      <p style={{ fontSize: "12px", color: "#6B7280", marginTop: "4px", margin: "4px 0 0 0" }}>Add more data for better insights.</p>
-                    </div>
-                    <div style={{ borderRadius: "16px", background: "#EFF6FF", border: "1px solid #BFDBFE", padding: "16px" }}>
-                      <p style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB", margin: 0 }}>Set a budget</p>
-                      <p style={{ fontSize: "12px", color: "#6B7280", marginTop: "4px", margin: "4px 0 0 0" }}>Create budgets to stay on track.</p>
+                      <p style={{ fontSize: "12px", color: "#6B7280", marginTop: "4px" }}>Add more data for better insights.</p>
                     </div>
                   </>
                 )}
               </div>
             </div>
 
-            <div style={{ gridColumn: "span 2" }}>
-              <div
-                style={{
-                  borderRadius: "16px",
-                  background: "linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 100%)",
-                  border: "1px solid #E5E7EB",
-                  padding: "20px",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                  <BookOpen style={{ height: "16px", width: "16px", color: "#2563EB" }} />
-                  <span style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Monthly Story</span>
-                </div>
-                <p style={{ fontSize: "14px", color: "#374151", lineHeight: 1.7, margin: 0 }}>{monthlyStory}</p>
+            <div style={{ borderRadius: "16px", background: "linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 100%)", border: "1px solid #E5E7EB", padding: isMobile ? "16px" : "20px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                <BookOpen style={{ height: "16px", width: "16px", color: "#2563EB" }} />
+                <span style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Monthly Story</span>
               </div>
+              <p style={{ fontSize: "14px", color: "#374151", lineHeight: 1.7, margin: 0 }}>{monthlyStory}</p>
             </div>
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-          <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "16px" }}>
+          <div style={{ borderRadius: "20px", background: "white", padding: isMobile ? "20px" : "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
             <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: "0 0 16px 0" }}>Cash Flow Forecast</h3>
-            <div style={{ height: "200px" }}>
+            <div style={{ height: isMobile ? "180px" : "200px" }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={stats.monthlyTrend}>
                   <defs>
@@ -459,11 +386,8 @@ export default function DashboardPage() {
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: "12px", border: "1px solid #F3F4F6", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: "13px", padding: "8px 12px" }}
-                    formatter={(value) => formatCurrency(Number(value))}
-                  />
+                  <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} width={35} />
+                  <Tooltip contentStyle={{ borderRadius: "12px", border: "1px solid #F3F4F6", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: "13px", padding: "8px 12px" }} formatter={(value) => formatCurrency(Number(value))} />
                   <Area type="monotone" dataKey="income" stroke="#16A34A" fill="url(#incomeGrad)" strokeWidth={2} name="Income" />
                   <Area type="monotone" dataKey="expenses" stroke="#DC2626" fill="url(#expenseGrad)" strokeWidth={2} name="Expenses" />
                 </AreaChart>
@@ -481,24 +405,19 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-              <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>Spending by Category</h3>
-            </div>
+          <div style={{ borderRadius: "20px", background: "white", padding: isMobile ? "20px" : "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: "0 0 16px 0" }}>Spending by Category</h3>
             {stats.categoryData.length > 0 ? (
               <>
-                <div style={{ height: "180px" }}>
+                <div style={{ height: isMobile ? "160px" : "180px" }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={stats.categoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="amount" nameKey="name" strokeWidth={0}>
+                      <Pie data={stats.categoryData} cx="50%" cy="50%" innerRadius={isMobile ? 40 : 50} outerRadius={isMobile ? 60 : 75} paddingAngle={3} dataKey="amount" nameKey="name" strokeWidth={0}>
                         {stats.categoryData.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip
-                        contentStyle={{ borderRadius: "12px", border: "1px solid #F3F4F6", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: "13px", padding: "8px 12px" }}
-                        formatter={(value) => formatCurrency(Number(value))}
-                      />
+                      <Tooltip contentStyle={{ borderRadius: "12px", border: "1px solid #F3F4F6", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: "13px", padding: "8px 12px" }} formatter={(value) => formatCurrency(Number(value))} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -524,52 +443,26 @@ export default function DashboardPage() {
         </div>
 
         {goals.length > 0 && (
-          <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <div style={{ borderRadius: "20px", background: "white", padding: isMobile ? "20px" : "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <Target style={{ height: "16px", width: "16px", color: "#2563EB" }} />
-                <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>Goal Progress</h3>
+                <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>Goals</h3>
               </div>
-              <Link href="/dashboard/goals" style={{ fontSize: "13px", fontWeight: 500, color: "#2563EB", textDecoration: "none" }}>
-                View all
-              </Link>
+              <Link href="/dashboard/goals" style={{ fontSize: "13px", fontWeight: 500, color: "#2563EB", textDecoration: "none" }}>View all</Link>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              {goals.slice(0, 4).map((goal) => (
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              {goals.slice(0, isMobile ? 3 : 4).map((goal) => (
                 <div key={goal.id}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
-                    <span style={{ fontSize: "14px", fontWeight: 500, color: "#111111" }}>{goal.name}</span>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                    <span style={{ fontSize: "13px", fontWeight: 500, color: "#111111" }}>{goal.name}</span>
                     <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
-                      <span style={{ fontSize: "14px", fontWeight: 600, color: "#111111" }}>{formatCurrency(goal.current)}</span>
-                      <span style={{ fontSize: "12px", color: "#9CA3AF" }}>/ {formatCurrency(goal.target)}</span>
+                      <span style={{ fontSize: "13px", fontWeight: 600, color: "#111111" }}>{formatCurrency(goal.current)}</span>
+                      <span style={{ fontSize: "11px", color: "#9CA3AF" }}>/ {formatCurrency(goal.target)}</span>
                     </div>
                   </div>
-                  <div style={{ position: "relative", height: "8px", borderRadius: "4px", background: "#F3F4F6" }}>
-                    <div
-                      style={{
-                        position: "absolute",
-                        left: 0,
-                        top: 0,
-                        height: "100%",
-                        width: `${Math.min(goal.percentage, 100)}%`,
-                        borderRadius: "4px",
-                        background: goal.percentage >= 80 ? "#16A34A" : goal.percentage >= 50 ? "#F59E0B" : "#2563EB",
-                        transition: "width 1s ease",
-                      }}
-                    />
-                    <span
-                      style={{
-                        position: "absolute",
-                        right: "8px",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        fontSize: "11px",
-                        fontWeight: 600,
-                        color: goal.percentage > 50 ? "white" : "#6B7280",
-                      }}
-                    >
-                      {goal.percentage.toFixed(0)}%
-                    </span>
+                  <div style={{ position: "relative", height: "6px", borderRadius: "3px", background: "#F3F4F6" }}>
+                    <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${Math.min(goal.percentage, 100)}%`, borderRadius: "3px", background: goal.percentage >= 80 ? "#16A34A" : goal.percentage >= 50 ? "#F59E0B" : "#2563EB", transition: "width 1s ease" }} />
                   </div>
                 </div>
               ))}
@@ -578,83 +471,61 @@ export default function DashboardPage() {
         )}
 
         {budgets.length > 0 && (
-          <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <div style={{ borderRadius: "20px", background: "white", padding: isMobile ? "20px" : "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <CircleDollarSign style={{ height: "16px", width: "16px", color: "#16A34A" }} />
-                <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>Budget Status</h3>
+                <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>Budgets</h3>
               </div>
-              <Link href="/dashboard/budgets" style={{ fontSize: "13px", fontWeight: 500, color: "#2563EB", textDecoration: "none" }}>
-                View all
-              </Link>
+              <Link href="/dashboard/budgets" style={{ fontSize: "13px", fontWeight: 500, color: "#2563EB", textDecoration: "none" }}>View all</Link>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
-              {budgets.slice(0, 4).map((b) => (
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: "10px" }}>
+              {budgets.slice(0, isMobile ? 4 : 4).map((b) => (
                 <div
                   key={b.id}
                   style={{
                     borderRadius: "14px",
-                    padding: "16px",
+                    padding: isMobile ? "12px" : "16px",
                     background: b.status === "exceeded" ? "#FEF2F2" : b.status === "warning" ? "#FFFBEB" : "#F9FAFB",
                     border: `1px solid ${b.status === "exceeded" ? "#FECACA" : b.status === "warning" ? "#FEF3C7" : "#F3F4F6"}`,
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px" }}>
-                    <span style={{ fontSize: "16px" }}>{b.category?.icon || "💰"}</span>
-                    <span style={{ fontSize: "13px", fontWeight: 500, color: "#111111" }}>{b.category?.name || "Uncategorized"}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
+                    <span style={{ fontSize: "14px" }}>{b.category?.icon || "💰"}</span>
+                    <span style={{ fontSize: "12px", fontWeight: 500, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{b.category?.name || "Uncategorized"}</span>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "8px" }}>
-                    <span style={{ fontSize: "18px", fontWeight: 600, color: b.status === "exceeded" ? "#DC2626" : "#111111" }}>
-                      {formatCurrency(b.spent)}
-                    </span>
-                    <span style={{ fontSize: "12px", color: "#9CA3AF" }}>/ {formatCurrency(b.budgeted)}</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "6px" }}>
+                    <span style={{ fontSize: isMobile ? "16px" : "18px", fontWeight: 600, color: b.status === "exceeded" ? "#DC2626" : "#111111" }}>{formatCurrency(b.spent)}</span>
+                    <span style={{ fontSize: "11px", color: "#9CA3AF" }}>/ {formatCurrency(b.budgeted)}</span>
                   </div>
                   <div style={{ height: "4px", borderRadius: "2px", background: "#E5E7EB" }}>
-                    <div style={{ height: "100%", width: `${Math.min(b.percentage, 100)}%`, borderRadius: "2px", background: b.status === "exceeded" ? "#DC2626" : b.status === "warning" ? "#F59E0B" : "#16A34A", transition: "width 0.5s ease" }} />
+                    <div style={{ height: "100%", width: `${Math.min(b.percentage, 100)}%`, borderRadius: "2px", background: b.status === "exceeded" ? "#DC2626" : b.status === "warning" ? "#F59E0B" : "#16A34A" }} />
                   </div>
-                  <span style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "4px", display: "block" }}>{b.percentage}% used</span>
+                  <span style={{ fontSize: "10px", color: "#9CA3AF", marginTop: "4px", display: "block" }}>{b.percentage}% used</span>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
-          <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: "16px" }}>
+          <div style={{ borderRadius: "20px", background: "white", padding: isMobile ? "20px" : "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <Calendar style={{ height: "16px", width: "16px", color: "#F59E0B" }} />
                 <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>Upcoming Bills</h3>
               </div>
-              <Link href="/dashboard/cashflow" style={{ fontSize: "13px", fontWeight: 500, color: "#2563EB", textDecoration: "none" }}>
-                View all
-              </Link>
+              <Link href="/dashboard/cashflow" style={{ fontSize: "13px", fontWeight: 500, color: "#2563EB", textDecoration: "none" }}>View all</Link>
             </div>
             {upcomingBills.length > 0 ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 {upcomingBills.map((bill: any, i: number) => (
-                  <div
-                    key={i}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "10px 12px",
-                      borderRadius: "12px",
-                      background: "#F9FAFB",
-                    }}
-                  >
+                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderRadius: "12px", background: "#F9FAFB" }}>
                     <div style={{ minWidth: 0, flex: 1 }}>
-                      <p style={{ fontSize: "13px", fontWeight: 500, color: "#111111", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
-                        {bill.description}
-                      </p>
-                      <p style={{ fontSize: "11px", color: "#9CA3AF", margin: "2px 0 0 0" }}>
-                        {formatDate(bill.date)}
-                      </p>
+                      <p style={{ fontSize: "13px", fontWeight: 500, color: "#111111", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{bill.description}</p>
+                      <p style={{ fontSize: "11px", color: "#9CA3AF", margin: "2px 0 0 0" }}>{formatDate(bill.date)}</p>
                     </div>
-                    <span style={{ fontSize: "13px", fontWeight: 600, color: "#DC2626", flexShrink: 0, marginLeft: "8px" }}>
-                      -{formatCurrency(bill.amount)}
-                    </span>
+                    <span style={{ fontSize: "13px", fontWeight: 600, color: "#DC2626", flexShrink: 0, marginLeft: "8px" }}>-{formatCurrency(bill.amount)}</span>
                   </div>
                 ))}
               </div>
@@ -666,43 +537,25 @@ export default function DashboardPage() {
             )}
           </div>
 
-          <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <div style={{ borderRadius: "20px", background: "white", padding: isMobile ? "20px" : "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <ArrowLeftRight style={{ height: "16px", width: "16px", color: "#2563EB" }} />
                 <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>Recent Transactions</h3>
               </div>
-              <Link href="/dashboard/transactions" style={{ fontSize: "13px", fontWeight: 500, color: "#2563EB", textDecoration: "none" }}>
-                View all
-              </Link>
+              <Link href="/dashboard/transactions" style={{ fontSize: "13px", fontWeight: 500, color: "#2563EB", textDecoration: "none" }}>View all</Link>
             </div>
             {stats.recentTransactions.length > 0 ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                 {stats.recentTransactions.slice(0, 5).map((tx: any) => (
-                  <div
-                    key={tx.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "10px 12px",
-                      borderRadius: "12px",
-                      transition: "background 0.15s",
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = "#F9FAFB" }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent" }}
-                  >
+                  <div key={tx.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderRadius: "12px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, flex: 1 }}>
                       <div style={{ height: "32px", width: "32px", borderRadius: "8px", background: "#F9FAFB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", flexShrink: 0 }}>
                         {tx.category?.icon || "💰"}
                       </div>
                       <div style={{ minWidth: 0, flex: 1 }}>
-                        <p style={{ fontSize: "13px", fontWeight: 500, color: "#111111", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
-                          {tx.description}
-                        </p>
-                        <p style={{ fontSize: "11px", color: "#9CA3AF", margin: "2px 0 0 0" }}>
-                          {formatDate(tx.date)}
-                        </p>
+                        <p style={{ fontSize: "13px", fontWeight: 500, color: "#111111", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{tx.description}</p>
+                        <p style={{ fontSize: "11px", color: "#9CA3AF", margin: "2px 0 0 0" }}>{formatDate(tx.date)}</p>
                       </div>
                     </div>
                     <span style={{ fontSize: "13px", fontWeight: 600, color: tx.type === "income" ? "#16A34A" : "#111111", flexShrink: 0 }}>
@@ -719,25 +572,21 @@ export default function DashboardPage() {
             )}
           </div>
 
-          <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <div style={{ borderRadius: "20px", background: "white", padding: isMobile ? "20px" : "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
               <CreditCard style={{ height: "16px", width: "16px", color: "#7C3AED" }} />
               <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>Subscriptions</h3>
             </div>
             {subscriptions.length > 0 ? (
               <>
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "16px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "16px" }}>
                   {subscriptions.slice(0, 4).map((sub) => (
                     <div key={sub.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, flex: 1 }}>
                         <div style={{ height: "8px", width: "8px", borderRadius: "9999px", background: sub.color || "#6B7280", flexShrink: 0 }} />
-                        <span style={{ fontSize: "13px", color: "#6B7280", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
-                          {sub.name}
-                        </span>
+                        <span style={{ fontSize: "13px", color: "#6B7280", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{sub.name}</span>
                       </div>
-                      <span style={{ fontSize: "13px", fontWeight: 500, color: "#111111", flexShrink: 0 }}>
-                        {formatCurrency(sub.monthlyCost)}/mo
-                      </span>
+                      <span style={{ fontSize: "13px", fontWeight: 500, color: "#111111", flexShrink: 0 }}>{formatCurrency(sub.monthlyCost)}/mo</span>
                     </div>
                   ))}
                 </div>
@@ -756,11 +605,11 @@ export default function DashboardPage() {
         </div>
 
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
             <Zap style={{ height: "16px", width: "16px", color: "#F59E0B" }} />
             <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>Quick Actions</h3>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: isMobile ? "10px" : "12px" }}>
             {[
               { label: "Add Transaction", icon: Plus, href: "/dashboard/transactions", bg: "#EFF6FF", color: "#2563EB" },
               { label: "Scan Receipt", icon: Camera, href: "/dashboard/receipts", bg: "#F0FDF4", color: "#16A34A" },
@@ -773,31 +622,20 @@ export default function DashboardPage() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "12px",
-                  borderRadius: "16px",
+                  gap: isMobile ? "8px" : "12px",
+                  borderRadius: "14px",
                   background: "white",
-                  padding: "18px 20px",
+                  padding: isMobile ? "14px" : "18px 20px",
                   boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
                   border: "1px solid #F3F4F6",
                   textDecoration: "none",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)"
-                  e.currentTarget.style.transform = "translateY(-1px)"
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)"
-                  e.currentTarget.style.transform = "translateY(0)"
                 }}
               >
-                <div style={{ height: "40px", width: "40px", borderRadius: "12px", background: action.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <action.icon style={{ height: "20px", width: "20px", color: action.color }} />
+                <div style={{ height: isMobile ? "36px" : "40px", width: isMobile ? "36px" : "40px", borderRadius: "12px", background: action.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <action.icon style={{ height: isMobile ? "18px" : "20px", width: isMobile ? "18px" : "20px", color: action.color }} />
                 </div>
-                <div>
-                  <span style={{ fontSize: "14px", fontWeight: 500, color: "#111111" }}>{action.label}</span>
-                </div>
-                <ArrowRight style={{ height: "16px", width: "16px", color: "#D1D5DB", marginLeft: "auto" }} />
+                <span style={{ fontSize: "13px", fontWeight: 500, color: "#111111" }}>{action.label}</span>
+                {!isMobile && <ArrowRight style={{ height: "16px", width: "16px", color: "#D1D5DB", marginLeft: "auto" }} />}
               </Link>
             ))}
           </div>

@@ -35,6 +35,14 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true)
   const [dateRange, setDateRange] = useState("this-month")
   const [hoverRange, setHoverRange] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -110,10 +118,10 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "12px" : "24px" }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", gap: isMobile ? "12px" : "0" }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Advanced Analytics</h1>
+          <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Advanced Analytics</h1>
           <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>Comprehensive financial insights</p>
         </div>
         <div style={{ display: "flex", gap: "6px", background: "#F3F4F6", borderRadius: "9999px", padding: "4px" }}>
@@ -143,7 +151,7 @@ export default function AnalyticsPage() {
 
       {data && (
         <>
-          <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <div style={{ borderRadius: "20px", background: "white", padding: isMobile ? "16px" : "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px" }}>
               <BarChart3 style={{ width: "18px", height: "18px", color: "#2563EB" }} />
               <h3 style={{ fontSize: "17px", fontWeight: 600, color: "#111111", margin: 0 }}>Daily Spending Trend</h3>
@@ -167,8 +175,8 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-            <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? "12px" : "16px" }}>
+            <div style={{ borderRadius: "20px", background: "white", padding: isMobile ? "16px" : "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px" }}>
                 <PieChart style={{ width: "18px", height: "18px", color: "#16A34A" }} />
                 <h3 style={{ fontSize: "17px", fontWeight: 600, color: "#111111", margin: 0 }}>Category Comparison</h3>
@@ -222,7 +230,7 @@ export default function AnalyticsPage() {
               )}
             </div>
 
-            <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div style={{ borderRadius: "20px", background: "white", padding: isMobile ? "16px" : "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px" }}>
                 <TrendingUp style={{ width: "18px", height: "18px", color: "#F59E0B" }} />
                 <h3 style={{ fontSize: "17px", fontWeight: 600, color: "#111111", margin: 0 }}>Income vs Expenses</h3>
@@ -259,7 +267,7 @@ export default function AnalyticsPage() {
           </div>
 
           {data.topMerchants.length > 0 && (
-            <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div style={{ borderRadius: "20px", background: "white", padding: isMobile ? "16px" : "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
               <h3 style={{ fontSize: "17px", fontWeight: 600, color: "#111111", marginBottom: "20px" }}>Top Merchants</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 {data.topMerchants.map((merchant, i) => (
@@ -292,7 +300,7 @@ export default function AnalyticsPage() {
           )}
 
           {data.monthlyComparison.length > 0 && (
-            <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div style={{ borderRadius: "20px", background: "white", padding: isMobile ? "16px" : "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px" }}>
                 <Calendar style={{ width: "18px", height: "18px", color: "#8B5CF6" }} />
                 <h3 style={{ fontSize: "17px", fontWeight: 600, color: "#111111", margin: 0 }}>Monthly Comparison</h3>

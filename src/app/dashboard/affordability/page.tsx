@@ -30,6 +30,14 @@ export default function AffordabilityPage() {
 
   const [hoverAnalyze, setHoverAnalyze] = useState(false)
   const [inputFocused, setInputFocused] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -102,13 +110,13 @@ export default function AffordabilityPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "12px" : "24px" }}>
       <div>
-        <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Affordability Simulator</h1>
+        <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Affordability Simulator</h1>
         <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>Test before you buy</p>
       </div>
 
-      <div style={{ borderRadius: "20px", background: "white", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+      <div style={{ borderRadius: "20px", background: "white", padding: isMobile ? "16px" : "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
         <form onSubmit={handleAnalyze} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div>
             <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Product Name</label>
@@ -124,7 +132,7 @@ export default function AffordabilityPage() {
             />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: "12px" }}>
             <div>
               <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Price ($)</label>
               <input
@@ -214,9 +222,8 @@ export default function AffordabilityPage() {
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
-              <div style={{ borderRadius: "20px", background: "white", padding: "20px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-                <p style={{ fontSize: "12px", color: "#9CA3AF", margin: 0, fontWeight: 500, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Remaining Savings</p>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: isMobile ? "12px" : "16px" }}>
+              <div style={{ borderRadius: "20px", background: "white", padding: isMobile ? "16px" : "20px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
                 <p style={{ fontSize: "22px", fontWeight: 700, color: "#111111", margin: "6px 0 0" }}>{formatCurrency(result.remainingSavings)}</p>
               </div>
               <div style={{ borderRadius: "20px", background: "white", padding: "20px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>

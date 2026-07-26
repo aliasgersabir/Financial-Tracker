@@ -38,6 +38,14 @@ export default function ReceiptsPage() {
   const [hoverProcess, setHoverProcess] = useState<string | null>(null)
   const [hoverConfirm, setHoverConfirm] = useState<string | null>(null)
   const [hoverView, setHoverView] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -137,10 +145,10 @@ export default function ReceiptsPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "12px" : "24px" }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", gap: isMobile ? "12px" : "0" }}>
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Receipt Scanner</h1>
+          <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Receipt Scanner</h1>
           <p style={{ fontSize: "15px", color: "#6B7280", marginTop: "2px" }}>Scan and manage receipts with OCR</p>
         </div>
         <button
@@ -148,7 +156,7 @@ export default function ReceiptsPage() {
           onMouseEnter={() => setHoverAdd(true)}
           onMouseLeave={() => setHoverAdd(false)}
           style={{
-            display: "inline-flex", alignItems: "center", gap: "8px",
+            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px",
             borderRadius: "9999px", padding: "10px 20px",
             background: hoverAdd ? "#1D4ED8" : "#2563EB",
             fontSize: "14px", fontWeight: 500, color: "white",
@@ -162,7 +170,7 @@ export default function ReceiptsPage() {
       </div>
 
       {receipts.length > 0 ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "8px" : "12px" }}>
           {receipts.map((receipt) => {
             const statusConfig = getStatusConfig(receipt.status)
             const isHovered = hoverCard === receipt.id
@@ -176,21 +184,21 @@ export default function ReceiptsPage() {
                 onMouseEnter={() => setHoverCard(receipt.id)}
                 onMouseLeave={() => setHoverCard(null)}
                 style={{
-                  background: "white", borderRadius: "20px", padding: "20px",
+                  background: "white", borderRadius: "20px", padding: isMobile ? "16px" : "20px",
                   boxShadow: isHovered ? "0 2px 8px rgba(0,0,0,0.06)" : "0 1px 3px rgba(0,0,0,0.04)",
                   transition: "all 200ms ease",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", gap: isMobile ? "12px" : "0" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "14px", minWidth: 0, flex: 1 }}>
                     <div style={{
                       display: "flex", width: "44px", height: "44px", alignItems: "center", justifyContent: "center",
-                      borderRadius: "12px", background: "#F9FAFB",
+                      borderRadius: "12px", background: "#F9FAFB", flexShrink: 0,
                     }}>
                       <FileText style={{ width: "20px", height: "20px", color: "#6B7280" }} />
                     </div>
-                    <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                         <p style={{ fontSize: "15px", fontWeight: 600, color: "#111111", margin: 0 }}>{receipt.fileName}</p>
                         <span style={{
                           display: "inline-block", fontSize: "11px", fontWeight: 500,
@@ -207,7 +215,7 @@ export default function ReceiptsPage() {
                     </div>
                   </div>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: isMobile ? "8px" : "8px", flexWrap: isMobile ? "wrap" : "nowrap" }}>
                     {receipt.totalAmount && (
                       <span style={{ fontSize: "16px", fontWeight: 600, color: "#111111" }}>
                         {formatCurrency(receipt.totalAmount)}
@@ -278,7 +286,7 @@ export default function ReceiptsPage() {
       ) : (
         <div style={{
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-          padding: "80px 0", background: "white", borderRadius: "20px",
+          padding: isMobile ? "40px 16px" : "80px 0", background: "white", borderRadius: "20px",
           boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
         }}>
           <div style={{
@@ -316,7 +324,7 @@ export default function ReceiptsPage() {
             onDrop={handleDrop}
             style={{
               border: `2px dashed ${dragOver ? "#2563EB" : "#E5E7EB"}`,
-              borderRadius: "16px", padding: "40px 24px",
+              borderRadius: "16px", padding: isMobile ? "24px 16px" : "40px 24px",
               display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
               background: dragOver ? "#EFF6FF" : "#F9FAFB",
               cursor: "pointer", transition: "all 200ms ease",
@@ -329,11 +337,11 @@ export default function ReceiptsPage() {
               <Upload style={{ width: "20px", height: "20px", color: "#9CA3AF" }} />
             </div>
             {selectedFile ? (
-              <p style={{ fontSize: "14px", fontWeight: 500, color: "#111111" }}>{selectedFile.name}</p>
+              <p style={{ fontSize: "14px", fontWeight: 500, color: "#111111", textAlign: "center" }}>{selectedFile.name}</p>
             ) : (
               <>
-                <p style={{ fontSize: "14px", fontWeight: 500, color: "#111111", marginBottom: "4px" }}>Drop a file here or click to browse</p>
-                <p style={{ fontSize: "13px", color: "#9CA3AF" }}>Supports images and PDFs</p>
+                <p style={{ fontSize: "14px", fontWeight: 500, color: "#111111", marginBottom: "4px", textAlign: "center" }}>Drop a file here or click to browse</p>
+                <p style={{ fontSize: "13px", color: "#9CA3AF", textAlign: "center" }}>Supports images and PDFs</p>
               </>
             )}
             <input
