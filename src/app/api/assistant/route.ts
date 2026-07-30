@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { GoogleGenerativeAI } from "@google/generative-ai"
 
 const GEMINI_KEY = process.env.GEMINI_API_KEY || ""
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434"
@@ -194,23 +193,39 @@ async function streamGemini(
   financialContext: string,
   history: { role: string; content: string }[]
 ): Promise<ReadableStream> {
-  const genAI = new GoogleGenerativeAI(GEMINI_KEY)
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
+  const contents = [
+    ...history.slice(-10).map(m => ({
+      role: m.role === "user" ? "user" : "model",
+      parts: [{ text: m.content }],
+    })),
+    { role: "user", parts: [{ text: question }] },
+  ]
 
-  const chatHistory = history.slice(-10).map(m => ({
-    role: m.role === "user" ? "user" : "model",
-    parts: [{ text: m.content }],
-  }))
+  const body = {
+    system_instruction: {
+      parts: [{ text: SYSTEM_PROMPT + "\n\nHere is the user's financial data:\n\n" + financialContext }],
+    },
+    contents,
+    generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
+  }
 
-  const chat = model.startChat({ history: chatHistory })
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  )
 
-  const result = await chat.sendMessage([
-    SYSTEM_PROMPT + "\n\nHere is the user's financial data:\n\n" + financialContext,
-    question,
-  ])
+  if (!res.ok) {
+    const err = await res.text().catch(() => "Unknown error")
+    console.error("Gemini API error:", res.status, err)
+    throw new Error(`Gemini returned ${res.status}`)
+  }
 
-  const response = await result.response
-  const text = response.text()
+  const data = await res.json()
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response from Gemini."
 
   return new ReadableStream({
     start(controller) {
@@ -222,45 +237,78 @@ async function streamGemini(
   })
 }
 
-async function streamGeminiRealtime(
+async function streamGeminiStreaming(
   question: string,
   financialContext: string,
   history: { role: string; content: string }[]
 ): Promise<ReadableStream> {
-  const genAI = new GoogleGenerativeAI(GEMINI_KEY)
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
+  const contents = [
+    ...history.slice(-10).map(m => ({
+      role: m.role === "user" ? "user" : "model",
+      parts: [{ text: m.content }],
+    })),
+    { role: "user", parts: [{ text: question }] },
+  ]
 
-  const chatHistory = history.slice(-10).map(m => ({
-    role: m.role === "user" ? "user" : "model",
-    parts: [{ text: m.content }],
-  }))
-
-  const chat = model.startChat({
-    history: chatHistory,
+  const body = {
+    system_instruction: {
+      parts: [{ text: SYSTEM_PROMPT + "\n\nHere is the user's financial data:\n\n" + financialContext }],
+    },
+    contents,
     generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
-  })
+  }
 
-  const result = await chat.sendMessageStream([
-    SYSTEM_PROMPT + "\n\nHere is the user's financial data:\n\n" + financialContext,
-    question,
-  ])
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${GEMINI_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  )
 
+  if (!res.ok) {
+    const err = await res.text().catch(() => "Unknown error")
+    console.error("Gemini streaming API error:", res.status, err)
+    throw new Error(`Gemini returned ${res.status}`)
+  }
+
+  const decoder = new TextDecoder()
   return new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder()
       let fullAnswer = ""
       try {
-        for await (const chunk of result.stream) {
-          const text = chunk.text()
-          if (text) {
-            fullAnswer += text
-            controller.enqueue(encoder.encode(JSON.stringify({ token: text, done: false }) + "\n"))
+        const reader = res.body?.getReader()
+        if (!reader) { controller.close(); return }
+
+        let buffer = ""
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split("\n")
+          buffer = lines.pop() || ""
+
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue
+            const jsonStr = line.slice(6).trim()
+            if (!jsonStr || jsonStr === "[DONE]") continue
+            try {
+              const parsed = JSON.parse(jsonStr)
+              const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text || ""
+              if (text) {
+                fullAnswer += text
+                controller.enqueue(encoder.encode(JSON.stringify({ token: text, done: false }) + "\n"))
+              }
+            } catch { /* skip parse errors */ }
           }
         }
         controller.enqueue(encoder.encode(JSON.stringify({ done: true, answer: fullAnswer, suggestions: [] }) + "\n"))
       } catch (err) {
         console.error("Gemini stream error:", err)
-        controller.enqueue(encoder.encode(JSON.stringify({ done: true, answer: fullAnswer || "Error receiving response.", suggestions: [] }) + "\n"))
+        controller.enqueue(encoder.encode(JSON.stringify({ done: true, answer: fullAnswer || "Error.", suggestions: [] }) + "\n"))
       }
       controller.close()
     },
@@ -501,13 +549,12 @@ export async function POST(request: Request) {
     // Try Gemini first (works on Vercel, mobile, everywhere)
     if (GEMINI_KEY) {
       try {
-        const stream = await streamGeminiRealtime(question.trim(), financialContext, history || [])
+        const stream = await streamGeminiStreaming(question.trim(), financialContext, history || [])
         return new Response(stream, {
           headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", "Connection": "keep-alive" },
         })
       } catch (err) {
-        console.error("Gemini failed, trying fallback:", err)
-        // Try non-streaming Gemini as fallback
+        console.error("Gemini streaming failed:", err)
         try {
           const stream = await streamGemini(question.trim(), financialContext, history || [])
           return new Response(stream, {
