@@ -3,8 +3,10 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
 const GEMINI_KEY = process.env.GEMINI_API_KEY || ""
+const GROQ_KEY = process.env.GROQ_API_KEY || ""
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434"
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5-coder:7b"
+const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile"
 
 
 async function buildFinancialContext(userId: string, now: Date) {
@@ -326,6 +328,89 @@ async function streamGeminiStreaming(
   })
 }
 
+async function streamGroq(
+  question: string,
+  financialContext: string,
+  history: { role: string; content: string }[]
+): Promise<ReadableStream> {
+  const messages = [
+    { role: "system", content: SYSTEM_PROMPT + "\n\nHere is the user's financial data:\n\n" + financialContext },
+    ...history.slice(-10).map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.content })),
+    { role: "user", content: question },
+  ]
+
+  let lastErr: any = null
+  for (const model of [GROQ_MODEL, "llama-3.1-8b-instant"]) {
+    try {
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${GROQ_KEY}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          temperature: 0.7,
+          max_tokens: 2048,
+          stream: true,
+        }),
+      })
+
+      if (res.ok) {
+        const decoder = new TextDecoder()
+        return new ReadableStream({
+          async start(controller) {
+            const encoder = new TextEncoder()
+            let fullAnswer = ""
+            try {
+              const reader = res.body?.getReader()
+              if (!reader) { controller.close(); return }
+
+              let buffer = ""
+              while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+
+                buffer += decoder.decode(value, { stream: true })
+                const lines = buffer.split("\n")
+                buffer = lines.pop() || ""
+
+                for (const line of lines) {
+                  if (!line.startsWith("data: ")) continue
+                  const jsonStr = line.slice(6).trim()
+                  if (!jsonStr || jsonStr === "[DONE]") continue
+                  try {
+                    const parsed = JSON.parse(jsonStr)
+                    const text = parsed?.choices?.[0]?.delta?.content || ""
+                    if (text) {
+                      fullAnswer += text
+                      controller.enqueue(encoder.encode(JSON.stringify({ token: text, done: false }) + "\n"))
+                    }
+                  } catch { /* skip */ }
+                }
+              }
+              controller.enqueue(encoder.encode(JSON.stringify({ done: true, answer: fullAnswer, suggestions: [] }) + "\n"))
+            } catch (err) {
+              console.error("Groq stream error:", err)
+              controller.enqueue(encoder.encode(JSON.stringify({ done: true, answer: fullAnswer || "Error.", suggestions: [] }) + "\n"))
+            }
+            controller.close()
+          },
+        })
+      }
+
+      const errText = await res.text().catch(() => "Unknown error")
+      lastErr = new Error(`Groq ${model} returned ${res.status}: ${errText.slice(0, 300)}`)
+      console.error("Groq API error:", model, res.status, errText.slice(0, 500))
+    } catch (err) {
+      lastErr = err
+      console.error("Groq fetch error on", model, err)
+    }
+  }
+  throw lastErr
+}
+
 async function streamOllama(
   question: string,
   financialContext: string,
@@ -557,7 +642,19 @@ export async function POST(request: Request) {
     const financialData = await buildFinancialContext(session.user.id, new Date())
     const financialContext = formatContextForLLM(financialData)
 
-    // Try Gemini first (works on Vercel, mobile, everywhere)
+    // Try Groq first (free tier, works everywhere, very fast)
+    if (GROQ_KEY) {
+      try {
+        const stream = await streamGroq(question.trim(), financialContext, history || [])
+        return new Response(stream, {
+          headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", "Connection": "keep-alive" },
+        })
+      } catch (err) {
+        console.error("Groq failed:", err)
+      }
+    }
+
+    // Try Gemini (works on Vercel, mobile, everywhere)
     if (GEMINI_KEY) {
       try {
         const stream = await streamGeminiStreaming(question.trim(), financialContext, history || [])
