@@ -188,6 +188,44 @@ function formatContextForLLM(data: any): string {
   return lines.join("\n")
 }
 
+const GEMINI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"]
+
+async function fetchGemini(body: any, stream: boolean) {
+  let lastErr: any = null
+  for (const model of GEMINI_MODELS) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const endpoint = stream ? "streamGenerateContent?alt=sse&key=" : "generateContent?key="
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:${endpoint}${GEMINI_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          }
+        )
+        if (res.ok) return res
+
+        const errText = await res.text().catch(() => "Unknown error")
+        if (res.status === 429) {
+          lastErr = new Error(`Rate limited on ${model} (attempt ${attempt + 1}): ${errText.slice(0, 300)}`)
+          console.error("Gemini 429 on", model, "attempt", attempt + 1, errText.slice(0, 300))
+          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
+          continue
+        }
+        lastErr = new Error(`Gemini ${model} returned ${res.status}: ${errText.slice(0, 300)}`)
+        console.error("Gemini API error:", model, res.status, errText.slice(0, 500))
+        break
+      } catch (err) {
+        lastErr = err
+        console.error("Gemini fetch error on", model, "attempt", attempt + 1, err)
+        await new Promise(r => setTimeout(r, 500))
+      }
+    }
+  }
+  throw lastErr
+}
+
 async function streamGemini(
   question: string,
   financialContext: string,
@@ -209,21 +247,7 @@ async function streamGemini(
     generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
   }
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }
-  )
-
-  if (!res.ok) {
-    const err = await res.text().catch(() => "Unknown error")
-    console.error("Gemini API error:", res.status, err)
-    throw new Error(`Gemini returned ${res.status}`)
-  }
-
+  const res = await fetchGemini(body, false)
   const data = await res.json()
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response from Gemini."
 
@@ -258,20 +282,7 @@ async function streamGeminiStreaming(
     generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
   }
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${GEMINI_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }
-  )
-
-  if (!res.ok) {
-    const err = await res.text().catch(() => "Unknown error")
-    console.error("Gemini streaming API error:", res.status, err)
-    throw new Error(`Gemini returned ${res.status}`)
-  }
+  const res = await fetchGemini(body, true)
 
   const decoder = new TextDecoder()
   return new ReadableStream({
