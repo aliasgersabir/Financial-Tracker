@@ -91,18 +91,16 @@ export default function BudgetsPage() {
   const [loading, setLoading] = useState(true)
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
-  const [addItemModalOpen, setAddItemModalOpen] = useState(false)
+  const [budgetItems, setBudgetItems] = useState<{categoryId: string, amount: string}[]>([])
   const [editItemModalOpen, setEditItemModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<OverviewItem | null>(null)
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null)
 
   const [categories, setCategories] = useState<Category[]>([])
   const [createForm, setCreateForm] = useState({ name: "", totalAmount: "", period: 1 })
-  const [newItem, setNewItem] = useState({ categoryId: "", amount: "" })
   const [editAmount, setEditAmount] = useState("")
 
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
-  const [addBtnHovered, setAddBtnHovered] = useState(false)
   const [emptyAddHovered, setEmptyAddHovered] = useState(false)
   const [cancelBtnHovered, setCancelBtnHovered] = useState(false)
   const [submitBtnHovered, setSubmitBtnHovered] = useState(false)
@@ -168,6 +166,12 @@ export default function BudgetsPage() {
   const handleCreateBudget = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!createForm.name.trim()) return
+    const items = budgetItems
+      .filter((item) => item.categoryId && item.amount)
+      .map((item) => ({
+        categoryId: item.categoryId,
+        amount: parseFloat(item.amount),
+      }))
     await fetch("/api/budgets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -177,27 +181,12 @@ export default function BudgetsPage() {
         year: selectedYear,
         period: createForm.period,
         totalAmount: createForm.totalAmount ? parseFloat(createForm.totalAmount) : 0,
-        items: [],
+        items,
       }),
     })
     setCreateModalOpen(false)
     setCreateForm({ name: "", totalAmount: "", period: 1 })
-    fetchData()
-  }
-
-  const handleAddItem = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!budget || !newItem.categoryId || !newItem.amount) return
-    await fetch(`/api/budgets/${budget.id}/items`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        categoryId: newItem.categoryId,
-        amount: parseFloat(newItem.amount),
-      }),
-    })
-    setAddItemModalOpen(false)
-    setNewItem({ categoryId: "", amount: "" })
+    setBudgetItems([])
     fetchData()
   }
 
@@ -237,9 +226,6 @@ export default function BudgetsPage() {
   }
 
   const expenseCategories = categories.filter((c) => c.type === "expense")
-  const availableCategories = expenseCategories.filter(
-    (c) => !overview?.items.some((i) => i.category.id === c.id)
-  )
 
   if (status === "loading" || loading) {
     return (
@@ -269,33 +255,6 @@ export default function BudgetsPage() {
           <h1 style={{ fontSize: isMobile ? "22px" : "28px", fontWeight: 700, color: "#111111", letterSpacing: "-0.025em" }}>Budgets</h1>
           <p style={{ fontSize: isMobile ? "13px" : "15px", color: "#6B7280", marginTop: "2px" }}>Plan and track your spending</p>
         </div>
-        {budget && (
-          <button
-            onClick={() => setAddItemModalOpen(true)}
-            onMouseEnter={() => setAddBtnHovered(true)}
-            onMouseLeave={() => setAddBtnHovered(false)}
-            onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.98)" }}
-            onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1)" }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: isMobile ? "center" : undefined,
-              gap: "8px",
-              borderRadius: "9999px",
-              background: addBtnHovered ? "#1D4ED8" : "#2563EB",
-              padding: isMobile ? "10px 16px" : "10px 20px",
-              fontSize: "14px",
-              fontWeight: 500,
-              color: "white",
-              transition: "all 150ms ease",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-              cursor: "pointer",
-            }}
-          >
-            <Plus style={{ width: "16px", height: "16px" }} />
-            Add Category
-          </button>
-        )}
       </div>
 
       {/* Month/Year Selector */}
@@ -560,7 +519,7 @@ export default function BudgetsPage() {
             }}>
               <p style={{ fontSize: "14px", color: "#9CA3AF", marginBottom: "16px" }}>No categories in this budget yet</p>
               <button
-                onClick={() => setAddItemModalOpen(true)}
+                onClick={() => { setBudgetItems([]); setCreateModalOpen(true) }}
                 onMouseEnter={() => setEmptyAddHovered(true)}
                 onMouseLeave={() => setEmptyAddHovered(false)}
                 style={{
@@ -699,6 +658,86 @@ export default function BudgetsPage() {
               {formatDateRange(selectedMonth, selectedYear, createForm.period)}
             </p>
           </div>
+          <div>
+            <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>
+              Budget Categories <span style={{ color: "#9CA3AF", fontWeight: 400 }}>(optional)</span>
+            </label>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(4, 1fr)", gap: "8px", maxHeight: "160px", overflowY: "auto", padding: "2px" }}>
+              {expenseCategories.map((cat) => {
+                const isSelected = budgetItems.some((item) => item.categoryId === cat.id)
+                const isHover = selectedCatHover === cat.id
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => {
+                      if (isSelected) {
+                        setBudgetItems(budgetItems.filter((item) => item.categoryId !== cat.id))
+                      } else {
+                        setBudgetItems([...budgetItems, { categoryId: cat.id, amount: "" }])
+                      }
+                    }}
+                    onMouseEnter={() => setSelectedCatHover(cat.id)}
+                    onMouseLeave={() => setSelectedCatHover(null)}
+                    style={{
+                      display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
+                      padding: isMobile ? "8px 4px" : "10px 4px", borderRadius: "12px",
+                      border: isSelected ? `2px solid ${cat.color}` : "2px solid transparent",
+                      background: isSelected ? cat.color + "15" : isHover ? "#F3F4F6" : "#F9FAFB",
+                      cursor: "pointer", transition: "all 150ms ease",
+                    }}
+                  >
+                    <span style={{ fontSize: isMobile ? "16px" : "18px" }}>{cat.icon}</span>
+                    <span style={{ fontSize: "11px", fontWeight: 500, color: "#111111", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" }}>
+                      {cat.name}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+            {budgetItems.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "12px" }}>
+                {budgetItems.map((item, index) => {
+                  const cat = expenseCategories.find((c) => c.id === item.categoryId)
+                  if (!cat) return null
+                  return (
+                    <div key={item.categoryId} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 10px", borderRadius: "10px", background: "#F9FAFB", border: "1px solid #E5E7EB" }}>
+                      <span style={{ fontSize: "16px", flexShrink: 0 }}>{cat.icon}</span>
+                      <span style={{ fontSize: "13px", fontWeight: 500, color: "#111111", flexShrink: 0 }}>{cat.name}</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={item.amount}
+                        onChange={(e) => {
+                          const updated = [...budgetItems]
+                          updated[index].amount = e.target.value
+                          setBudgetItems(updated)
+                        }}
+                        placeholder="Amount"
+                        style={{
+                          flex: 1, height: "36px", borderRadius: "8px",
+                          border: "1px solid #E5E7EB", background: "white",
+                          padding: "0 10px", fontSize: "13px", color: "#111111",
+                          outline: "none", boxSizing: "border-box",
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setBudgetItems(budgetItems.filter((_, i) => i !== index))}
+                        style={{
+                          display: "flex", width: "28px", height: "28px", alignItems: "center", justifyContent: "center",
+                          borderRadius: "9999px", cursor: "pointer", border: "none", background: "none", flexShrink: 0,
+                        }}
+                      >
+                        <Trash2 style={{ width: "14px", height: "14px", color: "#DC2626" }} />
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
           <div style={{ display: "flex", gap: "12px", paddingTop: "8px" }}>
             <button
               type="button"
@@ -728,107 +767,6 @@ export default function BudgetsPage() {
               }}
             >
               Create Budget
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Add Item Modal */}
-      <Modal open={addItemModalOpen} onClose={() => setAddItemModalOpen(false)} title="Add Budget Category">
-        <form onSubmit={handleAddItem} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <div>
-            <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>
-              Select Category
-            </label>
-            {availableCategories.length > 0 ? (
-              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(4, 1fr)", gap: "8px", maxHeight: "200px", overflowY: "auto", padding: "2px" }}>
-                {availableCategories.map((cat) => {
-                  const isSelected = newItem.categoryId === cat.id
-                  const isHover = selectedCatHover === cat.id
-                  return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => setNewItem({ ...newItem, categoryId: cat.id })}
-                      onMouseEnter={() => setSelectedCatHover(cat.id)}
-                      onMouseLeave={() => setSelectedCatHover(null)}
-                      style={{
-                        display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
-                        padding: isMobile ? "8px 4px" : "10px 4px", borderRadius: "12px",
-                        border: isSelected ? `2px solid ${cat.color}` : "2px solid transparent",
-                        background: isSelected ? cat.color + "15" : isHover ? "#F3F4F6" : "#F9FAFB",
-                        cursor: "pointer", transition: "all 150ms ease",
-                      }}
-                    >
-                      <span style={{ fontSize: isMobile ? "16px" : "18px" }}>{cat.icon}</span>
-                      <span style={{ fontSize: "11px", fontWeight: 500, color: "#111111", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" }}>
-                        {cat.name}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            ) : (
-              <p style={{ fontSize: "13px", color: "#9CA3AF", padding: "16px", textAlign: "center", background: "#F9FAFB", borderRadius: "12px" }}>
-                All expense categories are already in this budget
-              </p>
-            )}
-          </div>
-          <div>
-            <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>
-              Budget Amount
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={newItem.amount}
-              onChange={(e) => setNewItem({ ...newItem, amount: e.target.value })}
-              onFocus={() => setInputFocused(true)}
-              onBlur={() => setInputFocused(false)}
-              style={{
-                height: "44px", width: "100%", borderRadius: "12px",
-                border: inputFocused ? "1px solid #2563EB" : "1px solid #E5E7EB",
-                background: "white", padding: "0 14px",
-                fontSize: "14px", color: "#111111", outline: "none",
-                transition: "all 150ms ease",
-                boxShadow: inputFocused ? "0 0 0 2px rgba(37,99,235,0.1)" : "none",
-              }}
-              placeholder="0.00"
-              required
-            />
-          </div>
-          <div style={{ display: "flex", gap: "12px", paddingTop: "8px" }}>
-            <button
-              type="button"
-              onClick={() => setAddItemModalOpen(false)}
-              onMouseEnter={() => setCancelBtnHovered(true)}
-              onMouseLeave={() => setCancelBtnHovered(false)}
-              style={{
-                flex: 1, height: "44px", borderRadius: "9999px",
-                border: "1px solid #E5E7EB",
-                background: cancelBtnHovered ? "#F9FAFB" : "white",
-                fontSize: "14px", fontWeight: 500, color: "#111111",
-                transition: "all 150ms ease", cursor: "pointer",
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!newItem.categoryId || !newItem.amount}
-              onMouseEnter={() => setSubmitBtnHovered(true)}
-              onMouseLeave={() => setSubmitBtnHovered(false)}
-              style={{
-                flex: 1, height: "44px", borderRadius: "9999px",
-                background: submitBtnHovered ? "#1D4ED8" : "#2563EB",
-                color: "white", fontSize: "14px", fontWeight: 500,
-                transition: "all 150ms ease",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.05)", cursor: "pointer",
-                opacity: !newItem.categoryId || !newItem.amount ? 0.5 : 1,
-              }}
-            >
-              Add Category
             </button>
           </div>
         </form>

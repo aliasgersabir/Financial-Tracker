@@ -40,7 +40,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
         style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)" }}
         onClick={onClose}
       />
-      <div style={{ position: "relative", zIndex: 50, width: "100%", maxWidth: "512px", margin: "0 16px", background: "white", borderRadius: "20px", padding: "24px", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
+      <div style={{ position: "relative", zIndex: 50, width: "100%", maxWidth: "512px", margin: "0 16px", background: "white", borderRadius: "20px", padding: "24px", boxShadow: "0 20px 60px rgba(0,0,0,0.15)", maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>
           <h2 style={{ fontSize: "20px", fontWeight: 600, color: "#111111" }}>{title}</h2>
           <button
@@ -50,7 +50,9 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
             <X style={{ width: "16px", height: "16px" }} />
           </button>
         </div>
-        {children}
+        <div style={{ overflowY: "auto", flex: 1, minHeight: 0 }}>
+          {children}
+        </div>
       </div>
     </div>
   )

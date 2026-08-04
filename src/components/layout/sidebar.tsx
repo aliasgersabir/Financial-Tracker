@@ -146,7 +146,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      onClick={onToggle}
+                      onClick={() => {}}
                       onMouseEnter={() => setHoveredItem(item.href)}
                       onMouseLeave={() => setHoveredItem(null)}
                       style={{

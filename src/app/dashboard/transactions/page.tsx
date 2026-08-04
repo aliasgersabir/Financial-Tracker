@@ -96,14 +96,23 @@ export default function TransactionsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!form.amount || !form.description) {
+      alert("Please fill in the amount and description.")
+      return
+    }
     const url = editingTx ? `/api/transactions/${editingTx.id}` : "/api/transactions"
     const method = editingTx ? "PUT" : "POST"
     try {
-      await fetch(url, {
+      const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, categoryId: form.categoryId || null }),
       })
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        alert(data?.error || "Failed to save transaction. Please try again.")
+        return
+      }
       setModalOpen(false)
       setEditingTx(null)
       setForm({ amount: "", description: "", date: new Date().toISOString().split("T")[0], type: filterType === "all" ? "expense" : filterType, accountId: accounts[0]?.id || "", categoryId: "" })
@@ -350,7 +359,7 @@ export default function TransactionsPage() {
                 <div style={{ marginTop: "12px", padding: "12px", borderRadius: "12px", border: "1px solid #E5E7EB", background: "#F9FAFB" }}>
                   <input type="text" placeholder="Category name" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} style={{ height: "36px", width: "100%", borderRadius: "8px", border: "1px solid #E5E7EB", background: "white", padding: "0 12px", fontSize: "13px", color: "#111111", outline: "none", boxSizing: "border-box" as const, marginBottom: "8px" }} />
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "4px", marginBottom: "8px" }}>
-                    {["📁","💰","🛒","🍔","🚗","🏠","🎬","✈️","📚","🏥","💡","🎁","☕","🛒","💊","🏋️","🎵","📱","🐾","👶","🔧","👔","💻","🎓","🏠","💼","🎂","🔑","🚌","💊"].map((icon) => (
+                    {["📁", "💰", "🛒", "🍔", "🚗", "🏠", "☕", "💊", "🏋️", "📱", "💼", "📚", "🎮", "✈️", "🎁"].map((icon) => (
                       <button key={icon} type="button" onClick={() => setNewCatIcon(icon)} style={{ height: "32px", borderRadius: "8px", border: `1px solid ${newCatIcon === icon ? "#2563EB" : "#E5E7EB"}`, background: newCatIcon === icon ? "#EFF6FF" : "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         {icon}
                       </button>
