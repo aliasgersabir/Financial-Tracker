@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { TrendingUp, Calendar, ArrowUpRight } from "lucide-react"
+import { formatCurrency } from "@/lib/utils"
 import {
   LineChart,
   Line,
@@ -27,9 +28,6 @@ interface ForecastResult {
   projectedBalance: number
   growthRate: number
 }
-
-const formatCurrency = (n: number) =>
-  `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
 export default function ForecastingPage() {
   const { status } = useSession()

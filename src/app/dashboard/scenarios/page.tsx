@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { GitBranch, Plus, ArrowRight, TrendingUp, BarChart3 } from "lucide-react"
 import { Modal } from "@/components/ui/modal"
+import { formatCurrency } from "@/lib/utils"
 
 interface Scenario {
   id: string
@@ -28,9 +29,6 @@ interface ScenarioComparison {
     recommendation: string
   }
 }
-
-const formatCurrency = (n: number) =>
-  `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
 export default function ScenariosPage() {
   const { status } = useSession()

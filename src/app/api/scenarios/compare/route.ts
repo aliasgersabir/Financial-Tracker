@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { formatCurrencyServer } from "@/lib/currency-server"
 
 export async function POST(req: Request) {
   const session = await auth()
@@ -106,7 +107,7 @@ export async function POST(req: Request) {
 
   if (bestScenario.name) {
     comparison.bestScenario = bestScenario
-    comparison.recommendation = `Based on projected monthly savings, "${bestScenario.name}" is the most beneficial scenario at ₹${bestScenario.savings.toFixed(0)}/month.`
+    comparison.recommendation = `Based on projected monthly savings, "${bestScenario.name}" is the most beneficial scenario at ${formatCurrencyServer(bestScenario.savings)}/month.`
   }
 
   return NextResponse.json(comparison)

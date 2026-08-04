@@ -49,6 +49,9 @@ export default function TransactionsPage() {
     accountId: "",
     categoryId: "",
   })
+  const [showAddCategory, setShowAddCategory] = useState(false)
+  const [newCatName, setNewCatName] = useState("")
+  const [newCatIcon, setNewCatIcon] = useState("📁")
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640)
@@ -338,7 +341,52 @@ export default function TransactionsPage() {
                     </button>
                   )
                 })}
+                <button type="button" onClick={() => { setShowAddCategory(!showAddCategory); setNewCatName(""); setNewCatIcon("📁") }} style={{ borderRadius: "12px", border: "1px dashed #D1D5DB", background: showAddCategory ? "#EFF6FF" : "white", padding: "8px", fontSize: "12px", fontWeight: 500, color: showAddCategory ? "#2563EB" : "#6B7280", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "2px" }}>
+                  <Plus style={{ height: "16px", width: "16px" }} />
+                  <span>Add</span>
+                </button>
               </div>
+              {showAddCategory && (
+                <div style={{ marginTop: "12px", padding: "12px", borderRadius: "12px", border: "1px solid #E5E7EB", background: "#F9FAFB" }}>
+                  <input type="text" placeholder="Category name" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} style={{ height: "36px", width: "100%", borderRadius: "8px", border: "1px solid #E5E7EB", background: "white", padding: "0 12px", fontSize: "13px", color: "#111111", outline: "none", boxSizing: "border-box" as const, marginBottom: "8px" }} />
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "4px", marginBottom: "8px" }}>
+                    {["📁","💰","🛒","🍔","🚗","🏠","🎬","✈️","📚","🏥","💡","🎁","☕","🛒","💊","🏋️","🎵","📱","🐾","👶","🔧","👔","💻","🎓","🏠","💼","🎂","🔑","🚌","💊"].map((icon) => (
+                      <button key={icon} type="button" onClick={() => setNewCatIcon(icon)} style={{ height: "32px", borderRadius: "8px", border: `1px solid ${newCatIcon === icon ? "#2563EB" : "#E5E7EB"}`, background: newCatIcon === icon ? "#EFF6FF" : "white", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        {icon}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button type="button" onClick={() => setShowAddCategory(false)} style={{ flex: 1, height: "32px", borderRadius: "8px", border: "1px solid #E5E7EB", background: "white", fontSize: "12px", fontWeight: 500, color: "#6B7280", cursor: "pointer" }}>Cancel</button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!newCatName.trim()) return
+                        try {
+                          const res = await fetch("/api/categories", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ name: newCatName.trim(), type: form.type, icon: newCatIcon, color: "#2563EB" }),
+                          })
+                          if (res.ok) {
+                            const cat = await res.json()
+                            setCategories((prev) => [...prev, cat])
+                            setForm((prev) => ({ ...prev, categoryId: cat.id }))
+                            setShowAddCategory(false)
+                            setNewCatName("")
+                            setNewCatIcon("📁")
+                          }
+                        } catch (err) {
+                          console.error("Failed to add category:", err)
+                        }
+                      }}
+                      style={{ flex: 1, height: "32px", borderRadius: "8px", background: "#2563EB", color: "white", fontSize: "12px", fontWeight: 500, cursor: "pointer", border: "none" }}
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             <div style={{ display: "flex", gap: "12px", paddingTop: "8px" }}>
               <button type="button" onClick={() => { setModalOpen(false); setEditingTx(null) }} style={{ flex: 1, height: "44px", borderRadius: "9999px", border: "1px solid #E5E7EB", background: "white", fontSize: "14px", fontWeight: 500, color: "#111111", cursor: "pointer" }}>Cancel</button>

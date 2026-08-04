@@ -27,6 +27,7 @@ interface Budget {
   name: string
   month: number
   year: number
+  period: number
   items: BudgetItem[]
 }
 
@@ -52,6 +53,31 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ]
 
+const SHORT_MONTH_NAMES = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+]
+
+const PERIOD_OPTIONS = [
+  { value: 1, label: "Monthly" },
+  { value: 3, label: "Quarterly" },
+  { value: 6, label: "Half-yearly" },
+  { value: 12, label: "Yearly" },
+]
+
+function getEndMonthYear(month: number, year: number, period: number) {
+  const totalMonths = period - 1
+  const endMonth = ((month - 1 + totalMonths) % 12) + 1
+  const endYear = year + Math.floor((month - 1 + totalMonths) / 12)
+  return { endMonth, endYear }
+}
+
+function formatDateRange(month: number, year: number, period: number) {
+  if (period === 1) return `${MONTH_NAMES[month - 1]} ${year}`
+  const { endMonth, endYear } = getEndMonthYear(month, year, period)
+  return `${SHORT_MONTH_NAMES[month - 1]} ${year} — ${SHORT_MONTH_NAMES[endMonth - 1]} ${endYear}`
+}
+
 export default function BudgetsPage() {
   const { status } = useSession()
   const router = useRouter()
@@ -71,7 +97,7 @@ export default function BudgetsPage() {
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null)
 
   const [categories, setCategories] = useState<Category[]>([])
-  const [createForm, setCreateForm] = useState({ name: "", totalAmount: "" })
+  const [createForm, setCreateForm] = useState({ name: "", totalAmount: "", period: 1 })
   const [newItem, setNewItem] = useState({ categoryId: "", amount: "" })
   const [editAmount, setEditAmount] = useState("")
 
@@ -149,12 +175,13 @@ export default function BudgetsPage() {
         name: createForm.name,
         month: selectedMonth,
         year: selectedYear,
+        period: createForm.period,
         totalAmount: createForm.totalAmount ? parseFloat(createForm.totalAmount) : 0,
         items: [],
       }),
     })
     setCreateModalOpen(false)
-    setCreateForm({ name: "", totalAmount: "" })
+    setCreateForm({ name: "", totalAmount: "", period: 1 })
     fetchData()
   }
 
@@ -356,7 +383,7 @@ export default function BudgetsPage() {
               <div>
                 <h2 style={{ fontSize: isMobile ? "14px" : "16px", fontWeight: 600, color: "#111111" }}>{budget.name}</h2>
                 <p style={{ fontSize: isMobile ? "12px" : "13px", color: "#9CA3AF", marginTop: "2px" }}>
-                  {MONTH_NAMES[selectedMonth - 1]} {selectedYear} Overview
+                  {formatDateRange(selectedMonth, selectedYear, budget.period || 1)} Overview
                 </p>
               </div>
               <button
@@ -643,8 +670,33 @@ export default function BudgetsPage() {
           </div>
           <div>
             <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#111111", marginBottom: "6px" }}>Period</label>
-            <p style={{ fontSize: "14px", color: "#6B7280", padding: "10px 14px", background: "#F9FAFB", borderRadius: "12px" }}>
-              {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+              {PERIOD_OPTIONS.map((opt) => {
+                const isActive = createForm.period === opt.value
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setCreateForm({ ...createForm, period: opt.value })}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: "9999px",
+                      fontSize: "13px",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                      transition: "all 150ms ease",
+                      border: isActive ? "1px solid #2563EB" : "1px solid #E5E7EB",
+                      background: isActive ? "#2563EB" : "white",
+                      color: isActive ? "white" : "#6B7280",
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                )
+              })}
+            </div>
+            <p style={{ fontSize: "13px", color: "#6B7280", padding: "10px 14px", background: "#F9FAFB", borderRadius: "12px", marginTop: "8px" }}>
+              {formatDateRange(selectedMonth, selectedYear, createForm.period)}
             </p>
           </div>
           <div style={{ display: "flex", gap: "12px", paddingTop: "8px" }}>

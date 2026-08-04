@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { formatCurrencyServer } from "@/lib/currency-server"
 
 export async function GET() {
   const session = await auth()
@@ -149,7 +150,7 @@ export async function GET() {
           type: "deadline_missed",
           goalId: goal.id,
           goalName: goal.name,
-          message: `"${goal.name}" has passed its deadline with ₹${remaining.toFixed(0)} remaining. Consider extending the deadline or increasing contributions.`,
+          message: `"${goal.name}" has passed its deadline with ${formatCurrencyServer(remaining)} remaining. Consider extending the deadline or increasing contributions.`,
           priority: "high",
         })
       } else if (monthsToCompletion > monthsUntilDeadline) {
@@ -159,7 +160,7 @@ export async function GET() {
           type: "increase_contribution",
           goalId: goal.id,
           goalName: goal.name,
-          message: `Increase monthly contribution by ₹${increase.toFixed(0)} (to ₹${neededMonthly.toFixed(0)}/month) to meet the deadline for "${goal.name}".`,
+          message: `Increase monthly contribution by ${formatCurrencyServer(increase)} (to ${formatCurrencyServer(neededMonthly)}/month) to meet the deadline for "${goal.name}".`,
           potentialSaving: increase,
           monthsSaved: monthsToCompletion - monthsUntilDeadline,
           priority: "high",
@@ -183,7 +184,7 @@ export async function GET() {
           type: "long_timeline",
           goalId: goal.id,
           goalName: goal.name,
-          message: `"${goal.name}" will take ${monthsToCompletion} months at current pace. Increasing contribution by ₹${increase.toFixed(0)}/month would cut it to 5 years.`,
+          message: `"${goal.name}" will take ${monthsToCompletion} months at current pace. Increasing contribution by ${formatCurrencyServer(increase)}/month would cut it to 5 years.`,
           potentialSaving: increase,
           monthsSaved: monthsToCompletion - 60,
           priority: "medium",
@@ -206,7 +207,7 @@ export async function GET() {
           type: "reduce_category",
           goalId: matchingGoal.id,
           goalName: matchingGoal.name,
-          message: `Reduce ${category} spending by 10% (save ₹${reduction10.toFixed(0)}/month) and redirect to "${matchingGoal.name}" to reach it faster.`,
+          message: `Reduce ${category} spending by 10% (save ${formatCurrencyServer(reduction10)}/month) and redirect to "${matchingGoal.name}" to reach it faster.`,
           potentialSaving: reduction10,
           priority: "medium",
         })
@@ -227,7 +228,7 @@ export async function GET() {
         type: "redirect_surplus",
         goalId: incompleteGoal.id,
         goalName: incompleteGoal.name,
-        message: `Redirect ₹${goal.monthlyTarget.toFixed(0)}/month from completed/paused goal "${goal.name}" to "${incompleteGoal.name}".`,
+        message: `Redirect ${formatCurrencyServer(goal.monthlyTarget)}/month from completed/paused goal "${goal.name}" to "${incompleteGoal.name}".`,
         potentialSaving: goal.monthlyTarget,
         priority: "medium",
       })

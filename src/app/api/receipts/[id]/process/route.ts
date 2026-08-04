@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { formatCurrencyServer } from "@/lib/currency-server"
 
 const SAMPLE_MERCHANTS = [
   "Amazon", "Walmart", "Target", "Costco", "Whole Foods",
@@ -32,7 +33,7 @@ function simulateOCR(fileType: string) {
   const receiptDate = new Date(now)
   receiptDate.setDate(receiptDate.getDate() - Math.floor(Math.random() * 7))
 
-  const rawText = `${merchant}\n${receiptDate.toLocaleDateString()}\n${items.map((i) => `${i.name}: $${i.price.toFixed(2)}`).join("\n")}\nSubtotal: $${subtotal.toFixed(2)}\nTax: $${tax.toFixed(2)}\nTotal: $${total.toFixed(2)}`
+  const rawText = `${merchant}\n${receiptDate.toLocaleDateString()}\n${items.map((i) => `${i.name}: ${formatCurrencyServer(i.price)}`).join("\n")}\nSubtotal: ${formatCurrencyServer(subtotal)}\nTax: ${formatCurrencyServer(tax)}\nTotal: ${formatCurrencyServer(total)}`
 
   const confidence = 0.75 + Math.random() * 0.2
 

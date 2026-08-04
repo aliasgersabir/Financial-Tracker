@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { formatCurrencyServer } from "@/lib/currency-server"
 
 export const dynamic = "force-dynamic"
 
@@ -90,7 +91,7 @@ export async function GET() {
           insights.push({
             type: "category_increase",
             title: `${cat} spending up ${catChange.toFixed(0)}%`,
-            explanation: `Spending on ${cat} increased from $${prev.toFixed(2)} to $${curr.toFixed(2)}.`,
+            explanation: `Spending on ${cat} increased from ${formatCurrencyServer(prev)} to ${formatCurrencyServer(curr)}.`,
             action: `Consider setting a budget for ${cat} to keep spending in check.`,
             confidence: 0.8,
             priority: catChange > 50 ? "high" : "medium",
@@ -140,7 +141,7 @@ export async function GET() {
         insights.push({
           type: "budget_over",
           title: `Over budget: ${item.category?.name}`,
-          explanation: `You've spent $${spent.toFixed(2)} of your $${item.amount.toFixed(2)} budget for ${item.category?.name} (${overPct.toFixed(0)}% over).`,
+          explanation: `You've spent ${formatCurrencyServer(spent)} of your ${formatCurrencyServer(item.amount)} budget for ${item.category?.name} (${overPct.toFixed(0)}% over).`,
           action: `Try to limit ${item.category?.name} spending for the rest of the month.`,
           confidence: 0.95,
           priority: overPct > 20 ? "high" : "medium",
@@ -161,7 +162,7 @@ export async function GET() {
         insights.push({
           type: "goal_behind",
           title: `Goal "${goal.name}" may be missed`,
-          explanation: `You've saved $${goal.currentSaved.toFixed(2)} of $${goal.targetAmount.toFixed(2)} (${pct.toFixed(0)}%) with ${daysLeft} days left.`,
+          explanation: `You've saved ${formatCurrencyServer(goal.currentSaved)} of ${formatCurrencyServer(goal.targetAmount)} (${pct.toFixed(0)}%) with ${daysLeft} days left.`,
           action: `Consider increasing contributions to reach your "${goal.name}" goal on time.`,
           confidence: 0.85,
           priority: "high",

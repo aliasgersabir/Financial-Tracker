@@ -61,24 +61,54 @@ export default function ReportsPage() {
   }, [status])
 
   const fetchReports = async () => {
-    const res = await fetch("/api/reports")
-    const data = await res.json()
-    setReports(data.map((r: Report) => ({ ...r, parsedData: JSON.parse(r.data) })))
-    setLoading(false)
+    try {
+      const res = await fetch("/api/reports")
+      const data = await res.json()
+      setReports(data.map((r: Report) => {
+        try { return { ...r, parsedData: JSON.parse(r.data) } }
+        catch { return { ...r, parsedData: null } }
+      }))
+    } catch {
+      // API error — leave reports as []
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleGenerate = async () => {
-    if (!startDate || !endDate) return
+    let effectiveStart = startDate
+    let effectiveEnd = endDate
+    if (period !== "custom") {
+      const today = new Date()
+      const y = today.getFullYear()
+      const m = today.getMonth()
+      if (period === "monthly") {
+        effectiveStart = new Date(y, m, 1).toISOString().slice(0, 10)
+      } else if (period === "quarterly") {
+        const qStart = Math.floor(m / 3) * 3
+        effectiveStart = new Date(y, qStart, 1).toISOString().slice(0, 10)
+      } else if (period === "yearly") {
+        effectiveStart = new Date(y, 0, 1).toISOString().slice(0, 10)
+      }
+      effectiveEnd = today.toISOString().slice(0, 10)
+    }
+    if (!effectiveStart || !effectiveEnd) return
     setGenerating(true)
-    const res = await fetch("/api/reports", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ period, startDate, endDate }),
-    })
-    const report = await res.json()
-    setReports((prev) => [{ ...report, parsedData: report.parsedData || JSON.parse(report.data) }, ...prev])
-    setShowForm(false)
-    setGenerating(false)
+    try {
+      const res = await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ period, startDate: effectiveStart, endDate: effectiveEnd }),
+      })
+      const report = await res.json()
+      const parsed = report.parsedData || (() => { try { return JSON.parse(report.data) } catch { return null } })()
+      setReports((prev) => [{ ...report, parsedData: parsed }, ...prev])
+      setShowForm(false)
+    } catch {
+      // API or parse error — silently ignore
+    } finally {
+      setGenerating(false)
+    }
   }
 
   const handleDelete = async (id: string) => {
@@ -89,7 +119,11 @@ export default function ReportsPage() {
   }
 
   const exportCSV = (report: Report) => {
-    const data = report.parsedData || JSON.parse(report.data)
+    let data
+    try {
+      data = report.parsedData || JSON.parse(report.data)
+    } catch { return }
+    if (!data) return
     let csv = "Category,Amount,Percentage\n"
     for (const c of data.categoryBreakdown) {
       csv += `"${c.name}",${c.amount},${c.percentage}%\n`
@@ -247,7 +281,8 @@ export default function ReportsPage() {
       {reports.length > 0 ? (
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {reports.map((report) => {
-            const data = report.parsedData || JSON.parse(report.data)
+            const data = (() => { try { return report.parsedData || JSON.parse(report.data) } catch { return null } })()
+            if (!data) return null
             const isExpanded = expandedId === report.id
             const isHovered = hoveredCard === report.id
             const maxDaily = Math.max(...(data.dailyTrend || []).map((d: { expenses: number }) => d.expenses), 1)

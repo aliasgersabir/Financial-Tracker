@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { BarChart3, PieChart, TrendingUp, Calendar } from "lucide-react"
+import { formatCurrency } from "@/lib/utils"
 import {
   BarChart,
   Bar,
@@ -23,9 +24,6 @@ interface AnalyticsData {
   topMerchants: { name: string; total: number; count: number }[]
   monthlyComparison: { month: string; income: number; expenses: number; savings: number; savingsRate: number }[]
 }
-
-const formatCurrency = (n: number) =>
-  `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
 const PIE_COLORS = ["#2563EB", "#16A34A", "#F59E0B", "#DC2626", "#8B5CF6", "#EC4899", "#06B6D4", "#F97316"]
 

@@ -2,7 +2,8 @@
 
 import { useSession, signOut } from "next-auth/react"
 import { getInitials, CURRENCIES, getCurrency, setCurrency } from "@/lib/utils"
-import { Bell, Calendar, ChevronLeft, ChevronRight, LogOut, User, Wallet, Settings } from "lucide-react"
+import { Bell, Calendar, ChevronLeft, ChevronRight, LogOut, User, Wallet, Settings, Sun, Moon } from "lucide-react"
+import { useTheme } from "@/contexts/theme-context"
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 
@@ -32,6 +33,7 @@ function timeAgo(date: string) {
 
 export function TopBar({ sidebarToggle }: { sidebarToggle?: React.ReactNode }) {
   const { data: session } = useSession()
+  const { theme, toggleTheme } = useTheme()
   const [isDesktop, setIsDesktop] = useState(true)
   const [showNotifications, setShowNotifications] = useState(false)
   const [showAccount, setShowAccount] = useState(false)
@@ -281,6 +283,20 @@ export function TopBar({ sidebarToggle }: { sidebarToggle?: React.ReactNode }) {
             </div>
           )}
         </div>
+
+        {/* Theme Toggle */}
+        <button
+          onClick={toggleTheme}
+          style={{
+            display: "flex", height: "34px", width: "34px", alignItems: "center", justifyContent: "center",
+            borderRadius: "9999px", color: "#6B7280", cursor: "pointer", border: "none",
+            background: "transparent", transition: "background 150ms ease",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "#F3F4F6")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+        >
+          {theme === "dark" ? <Sun style={{ height: "17px", width: "17px" }} /> : <Moon style={{ height: "17px", width: "17px" }} />}
+        </button>
 
         {/* Divider */}
         <div style={{ width: "1px", height: "24px", background: "#E5E7EB", marginInline: "4px" }} />

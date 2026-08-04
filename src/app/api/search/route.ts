@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { formatCurrencyServer } from "@/lib/currency-server"
 
 interface ParsedQuery {
   merchant?: string
@@ -164,19 +165,19 @@ export async function GET(req: Request) {
   switch (parsed.actionType) {
     case "biggest":
       if (transactions.length > 0) {
-        summary = `Your biggest expense${timeRef ? ` ${timeRef}` : ""} is "${transactions[0].description}" for $${transactions[0].amount.toFixed(2)}`
+        summary = `Your biggest expense${timeRef ? ` ${timeRef}` : ""} is "${transactions[0].description}" for ${formatCurrencyServer(transactions[0].amount)}`
       } else {
         summary = `No transactions found${timeRef ? ` ${timeRef}` : ""}`
       }
       break
     case "howMuch":
-      summary = `Total ${parsed.merchant || parsed.category || "spending"}${timeRef ? ` ${timeRef}` : ""}: $${total.toFixed(2)} across ${transactions.length} transaction(s)`
+      summary = `Total ${parsed.merchant || parsed.category || "spending"}${timeRef ? ` ${timeRef}` : ""}: ${formatCurrencyServer(total)} across ${transactions.length} transaction(s)`
       break
     case "compare":
-      summary = `Found ${transactions.length} transaction(s) totaling $${total.toFixed(2)}${timeRef ? ` ${timeRef}` : ""}`
+      summary = `Found ${transactions.length} transaction(s) totaling ${formatCurrencyServer(total)}${timeRef ? ` ${timeRef}` : ""}`
       break
     default:
-      summary = `Found ${transactions.length} transaction(s)${parsed.merchant ? ` matching "${parsed.merchant}"` : ""}${parsed.category ? ` in ${parsed.category}` : ""}${timeRef ? ` ${timeRef}` : ""} totaling $${total.toFixed(2)}`
+      summary = `Found ${transactions.length} transaction(s)${parsed.merchant ? ` matching "${parsed.merchant}"` : ""}${parsed.category ? ` in ${parsed.category}` : ""}${timeRef ? ` ${timeRef}` : ""} totaling ${formatCurrencyServer(total)}`
   }
 
   return NextResponse.json({

@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { Brain, Lightbulb, AlertTriangle, CheckCircle, X } from "lucide-react"
+import { formatCurrency } from "@/lib/utils"
 
 interface Insight {
   id: string
@@ -15,9 +16,6 @@ interface Insight {
   dismissed: boolean
   createdAt: string
 }
-
-const formatCurrency = (n: number) =>
-  `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
 export default function InsightsPage() {
   const { status } = useSession()

@@ -228,7 +228,7 @@ export default function DashboardPage() {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
-      <div style={{ display: "flex", flexDirection: "column", gap: "20px", maxWidth: "1400px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px", maxWidth: "1400px", margin: "0 auto" }}>
 
         <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", gap: "12px" }}>
           <div>

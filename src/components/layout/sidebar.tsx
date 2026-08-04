@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   Wallet,
   ArrowLeftRight,
-  Tag,
   LogOut,
   Menu,
   X,
@@ -18,7 +17,7 @@ import {
   BarChart3,
   FileText,
   MessageCircle,
-  ShoppingCart,
+  Calculator,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react"
@@ -36,7 +35,7 @@ const navSections = [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { href: "/dashboard/accounts", label: "Accounts", icon: Wallet },
       { href: "/dashboard/transactions", label: "Transactions", icon: ArrowLeftRight },
-      { href: "/dashboard/categories", label: "Categories", icon: Tag },
+
     ],
   },
   {
@@ -45,7 +44,7 @@ const navSections = [
       { href: "/dashboard/budgets", label: "Budgets", icon: PiggyBank },
       { href: "/dashboard/goals", label: "Goals", icon: Target },
       { href: "/dashboard/recurring", label: "Recurring", icon: Repeat },
-      { href: "/dashboard/affordability", label: "Simulator", icon: ShoppingCart },
+      { href: "/dashboard/simulator", label: "Simulator", icon: Calculator },
     ],
   },
   {

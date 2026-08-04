@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { formatCurrencyServer } from "@/lib/currency-server"
 
 const GEMINI_KEY = process.env.GEMINI_API_KEY || ""
 const GROQ_KEY = process.env.GROQ_API_KEY || ""
@@ -466,13 +467,7 @@ async function streamOllama(
 function basicAnalysis(data: any, question: string): string {
   const q = question.toLowerCase()
   const s = data.summary
-  const cur = "₹"
-
-  const fmt = (n: number) => {
-    if (n >= 10000000) return `${cur}${(n / 10000000).toFixed(2)} Cr`
-    if (n >= 100000) return `${cur}${(n / 100000).toFixed(2)} L`
-    return `${cur}${Math.round(n).toLocaleString("en-IN")}`
-  }
+  const fmt = (n: number) => formatCurrencyServer(n)
 
   if (q.includes("salary") || q.includes("afford") || q.includes("rent") || q.includes("emi")) {
     const nums = question.match(/\d[\d,\.]*/g)
@@ -501,7 +496,7 @@ function basicAnalysis(data: any, question: string): string {
       }
       return out
     }
-    return `**Salary needed for rent:**\n\nRule: Monthly salary should be **3x the rent** (rent = 30% of income).\n\nExamples:\n- ₹10,000 rent → ₹30,000 salary needed\n- ₹25,000 rent → ₹75,000 salary needed\n- ₹50,000 rent → ₹1,50,000 salary needed\n\nAdd a number to your question for a personalized calculation!`
+      return `**Salary needed for rent:**\n\nRule: Monthly salary should be **3x the rent** (rent = 30% of income).\n\nExamples:\n- ${formatCurrencyServer(10000)} rent → ${formatCurrencyServer(30000)} salary needed\n- ${formatCurrencyServer(25000)} rent → ${formatCurrencyServer(75000)} salary needed\n- ${formatCurrencyServer(50000)} rent → ${formatCurrencyServer(150000)} salary needed\n\nAdd a number to your question for a personalized calculation!`
   }
 
   if (q.includes("save") || q.includes("saving") || q.includes("invest")) {
